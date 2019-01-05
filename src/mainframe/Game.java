@@ -63,6 +63,10 @@ public class Game {
 	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos) {
 		if ( button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			System.out.println("Left Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
+			int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+			if(t_id != -1) {
+				System.out.println("Territory Clicked: " + t_id);
+			}
 		}
 		else if( button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 			System.out.println("Right Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
