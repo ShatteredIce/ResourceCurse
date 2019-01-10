@@ -8,11 +8,9 @@ import rendering.Model;
 
 import java.nio.*;
 
-import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.system.MemoryStack.*;
-import static org.lwjgl.system.MemoryUtil.*;
+import static org.lwjgl.opengl.GL14.*;
 
 public class Game {
 
@@ -55,9 +53,27 @@ public class Game {
 	}
 	
 	public void gameLoop() {
+		
 		lwjgl3.projectRelativeCameraCoordinates();
+		
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		gamemap.getTexture().bind();
 		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
+		
+		glBlendFunc(GL_ONE_MINUS_SRC_COLOR, GL_SRC_ALPHA);
+		GL14.glBlendColor(0.0f, 1.0f, 0.0f, 1.0f);
+		
+		gamemap.getTerritoryTextures().get(0).bind();
+		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
+		
+		gamemap.getTerritoryTextures().get(1).bind();
+		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
+		
+		gamemap.getTerritoryTextures().get(2).bind();
+		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
+
+
 	}
 	
 	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos) {
