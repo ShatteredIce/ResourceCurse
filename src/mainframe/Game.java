@@ -1,16 +1,22 @@
 package mainframe;
-import org.lwjgl.*;
-import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.*;
-import org.lwjgl.system.*;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
+import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
+import static org.lwjgl.glfw.GLFW.glfwPollEvents;
+import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
+import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glClear;
+
+import java.nio.DoubleBuffer;
 
 import rendering.Model;
-
-import java.nio.*;
-
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL14.*;
+import rendering.Shader;
+import rendering.Texture;
 
 public class Game {
 
@@ -19,6 +25,7 @@ public class Game {
 	final int[] indices = {0, 1, 2, 2, 1, 3};
 	final double[] placeholder = {0, 0, 0, 0, 0, 0, 0, 0};
 	Model model;
+	Shader shader;
 	
 	GameEngine lwjgl3 = new GameEngine(this);
 	
@@ -35,6 +42,7 @@ public class Game {
 		lwjgl3.setup();
 		
 		model = new Model(placeholder, textureCoords, indices);
+		shader = new Shader("shader");
 		gamemap = new TestMap();
 
 		// Run the rendering loop until the user has attempted to close
@@ -54,24 +62,24 @@ public class Game {
 	
 	public void gameLoop() {
 		
+//		Texture tex = new Texture("testmap.png");
+		
 		lwjgl3.projectRelativeCameraCoordinates();
 		
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		shader.bind();
+//		shader.setUniform("sampler", 0);
+//		tex.bind(0);
+		model.render(-0.5, -0.5, 0.5, 0.5);
+		
+//		gamemap.getTerritoryTextures().get(0).bind(0);
+//		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
+//		
+//		gamemap.getTerritoryTextures().get(1).bind(0);
+//		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
+//				
+//		gamemap.getTerritoryTextures().get(2).bind(0);
+//		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
 
-		gamemap.getTexture().bind();
-		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
-		
-		glBlendFunc(GL_ONE_MINUS_SRC_COLOR, GL_SRC_ALPHA);
-		GL14.glBlendColor(0.0f, 1.0f, 0.0f, 1.0f);
-		
-		gamemap.getTerritoryTextures().get(0).bind();
-		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
-		
-		gamemap.getTerritoryTextures().get(1).bind();
-		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
-		
-		gamemap.getTerritoryTextures().get(2).bind();
-		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
 
 
 	}
