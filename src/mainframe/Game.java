@@ -1,4 +1,5 @@
 package mainframe;
+
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
@@ -7,9 +8,6 @@ import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
 import static org.lwjgl.opengl.GL11.glClear;
 
 import java.nio.DoubleBuffer;
@@ -21,16 +19,22 @@ import rendering.Texture;
 public class Game {
 
 	//Rendering variables
-	final double[] textureCoords = {0, 0, 0, 1, 1, 0, 1, 1};
-	final int[] indices = {0, 1, 2, 2, 1, 3};
-	final double[] placeholder = {0, 0, 0, 0, 0, 0, 0, 0};
+	final double[] textureCoords = {0, 0, 1, 0, 1, 1, 0, 1};
+	final int[] indices = {0, 1, 2, 2, 3, 0};
+	final double[] placeholder = {-0.6, 0.6, 0, 0, 0.5, 0, 0.5, -0.5, 0};
+	final double[] placeholder2 = {-0.5, 0.5, 0, 
+									0.5, 0.5, 0,
+									0.5, -0.5, 0,
+									-0.5, -0.5, 0
+									};
+
 	Model model;
 	Shader shader;
 	
 	GameEngine lwjgl3 = new GameEngine(this);
 	
 	Map gamemap;
-
+	
 	public void run() {
 		lwjgl3.create();
 		start();
@@ -41,9 +45,11 @@ public class Game {
 		
 		lwjgl3.setup();
 		
-		model = new Model(placeholder, textureCoords, indices);
+//		model = new Model(placeholder, textureCoords, indices);
+		model = new Model(placeholder2, textureCoords, indices);
 		shader = new Shader("shader");
-		gamemap = new TestMap();
+
+//		shader = new Shader("shader");
 
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
@@ -62,25 +68,12 @@ public class Game {
 	
 	public void gameLoop() {
 		
-//		Texture tex = new Texture("testmap.png");
-		
-		lwjgl3.projectRelativeCameraCoordinates();
-		
+		Texture tex = new Texture("testmap.png");
+
 		shader.bind();
-//		shader.setUniform("sampler", 0);
-//		tex.bind(0);
-		model.render(-0.5, -0.5, 0.5, 0.5);
-		
-//		gamemap.getTerritoryTextures().get(0).bind(0);
-//		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
-//		
-//		gamemap.getTerritoryTextures().get(1).bind(0);
-//		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
-//				
-//		gamemap.getTerritoryTextures().get(2).bind(0);
-//		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
-
-
+		shader.setUniform("sampler", 0);
+		tex.bind(0);
+		model.render(placeholder2);
 
 	}
 	

@@ -90,7 +90,7 @@ public class Model {
 	
 	public void render(double x1, double y1, double x2, double y2) {
 		
-		double[] vertices = {x1, y1, 0, x1, y2, 0, x2, y1, 0, x2, y2, 0};
+		double[] vertices = {x1, y1, 0, x2, y1, 0, x2, y2, 0, x1, y2, 0};
 		render(vertices);
 	}
 
