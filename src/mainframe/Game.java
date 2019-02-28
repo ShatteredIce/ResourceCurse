@@ -11,6 +11,7 @@ import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.glClear;
 
 import java.nio.DoubleBuffer;
+import java.util.ArrayList;
 
 import rendering.Model;
 import rendering.Shader;
@@ -23,6 +24,8 @@ public class Game {
 	Shader shader;
 	Map gamemap;
 	
+	ArrayList<Player> players = new ArrayList<Player>();
+	
 	public void run() {
 		lwjgl3.create();
 		start();
@@ -32,8 +35,13 @@ public class Game {
 	private void start() {
 		
 		lwjgl3.setup();
-		shader = new Shader("shader");
 		
+		shader = new Shader("shader");
+		gamemap = new TestMap();
+		
+		players.add(new Player(1, 0.5f, 0, 0));
+		players.add(new Player(1, 0, 0.5f, 0.5f));
+		players.add(new Player(1, 0, 0, 0.5f));
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
 		while ( !glfwWindowShouldClose(lwjgl3.getWindowHandle()) ) {			
@@ -56,9 +64,24 @@ public class Game {
 		
 		shader.bind();
 		shader.setUniform("sampler", 0);
+		
+		shader.setUniform("red", 0f);
+		shader.setUniform("green", 0f);
+		shader.setUniform("blue", 0f);
 
 		tex.bind(0);
 		lwjgl3.render(0, 0, 840, 640);
+		
+		for (int i = 0; i < gamemap.getTerritories().size(); i++) {
+			gamemap.getTerritoryTextures().get(i).bind(0);
+			float[] color = players.get(gamemap.getTerritories().get(i).getOwner()).getColor();
+			shader.setUniform("red", color[0]);
+			shader.setUniform("green", color[1]);
+			shader.setUniform("blue", color[2]);
+			lwjgl3.render(0, 0, 840, 640);
+		}
+	
+
 
 
 	}
@@ -69,6 +92,7 @@ public class Game {
 			int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
 			if(t_id != -1) {
 				System.out.println("Territory Clicked: " + t_id);
+				gamemap.getTerritories().get(t_id - 1).setOwner((gamemap.getTerritories().get(t_id - 1).getOwner() + 1) % players.size());
 			}
 		}
 		else if( button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
