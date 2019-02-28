@@ -26,6 +26,10 @@ public class Game {
 	
 	Map gamemap;
 
+	Player[] players;
+
+	int territorySelected;
+
 	public void run() {
 		lwjgl3.create();
 		start();
@@ -38,6 +42,8 @@ public class Game {
 		
 		model = new Model(placeholder, textureCoords, indices);
 		gamemap = new TestMap();
+		players = new Player[2];
+		territorySelected = -1;
 
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
@@ -65,11 +71,31 @@ public class Game {
 			System.out.println("Left Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
 			int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
 			if(t_id != -1) {
-				System.out.println("Territory Clicked: " + t_id);
+				if(territorySelected != -1){
+					if(territorySelected != t_id) {
+						gamemap.territories.get(t_id).incrementNumUnits(gamemap.territories.get(territorySelected).getNumUnits());
+						gamemap.territories.get(territorySelected).setNumUnits(0);
+						for(Unit unit: players[0].units){
+							if(unit.getLocation() == territorySelected){
+								unit.setLocation(t_id);
+							}
+						}
+						System.out.println("Territory Clicked: " + t_id);
+						System.out.println("Units: " + gamemap.territories.get(t_id).getNumUnits());
+					}
+					territorySelected = -1;
+				}else {
+					players[0].units.add(new Unit(t_id));
+					gamemap.territories.get(t_id).incrementNumUnits(1);
+					System.out.println("Territory Clicked: " + t_id);
+					System.out.println("Units: " + gamemap.territories.get(t_id).getNumUnits());
+				}
 			}
 		}
 		else if( button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 			System.out.println("Right Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
+			territorySelected = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+			System.out.println("Territory Selected: " + territorySelected);
 		}
 	}
 

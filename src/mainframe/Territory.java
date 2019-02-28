@@ -5,6 +5,7 @@ public class Territory {
 	
 	int id;
 	int owner_id;
+	int numUnits;
 	int[] true_color = new int[3];
 	
 	public Territory(int newid, int owner, int red, int green, int blue) {
@@ -13,6 +14,7 @@ public class Territory {
 		true_color[0] = red;
 		true_color[1] = green;
 		true_color[2] = blue;
+		numUnits = 0;
 	}
 	
 	public boolean checkTrueColor(int red, int green, int blue) {
@@ -29,6 +31,12 @@ public class Territory {
 	public int getOwner() {
 		return owner_id;
 	}
+
+	public int getNumUnits(){ return  numUnits;}
+
+	public void setNumUnits(int numUnits){ this.numUnits = numUnits;}
+
+	public  void incrementNumUnits(int incr){numUnits += incr;}
 
 
 }
