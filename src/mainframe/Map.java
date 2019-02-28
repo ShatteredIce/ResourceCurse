@@ -10,10 +10,11 @@ import rendering.Texture;
 
 public abstract class Map {
 	
-	Texture base_map;
-	BufferedImage truecolor;
-	
-	ArrayList<Territory> territories = new ArrayList<Territory>();
+	protected Texture base_map;
+	protected BufferedImage truecolor;
+
+	protected ArrayList<Texture> territory_textures = new ArrayList<>();	
+	protected ArrayList<Territory> territories = new ArrayList<Territory>();
 	
 	public Map() {
 		
@@ -52,6 +53,14 @@ public abstract class Map {
 	
 	public Texture getTexture() {
 		return base_map;
+	}
+	
+	public ArrayList<Texture> getTerritoryTextures(){
+		return territory_textures;
+	}
+	
+	public ArrayList<Territory> getTerritories(){
+		return territories;
 	}
 
 }

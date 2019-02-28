@@ -1,34 +1,33 @@
 package mainframe;
-import org.lwjgl.*;
-import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.*;
-import org.lwjgl.system.*;
+
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
+import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
+import static org.lwjgl.glfw.GLFW.glfwPollEvents;
+import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
+import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.glClear;
+
+import java.nio.DoubleBuffer;
+import java.util.ArrayList;
 
 import rendering.Model;
-
-import java.nio.*;
-
-import static org.lwjgl.glfw.Callbacks.*;
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.system.MemoryStack.*;
-import static org.lwjgl.system.MemoryUtil.*;
+import rendering.Shader;
+import rendering.Texture;
 
 public class Game {
-
-	//Rendering variables
-	final double[] textureCoords = {0, 0, 0, 1, 1, 0, 1, 1};
-	final int[] indices = {0, 1, 2, 2, 1, 3};
-	final double[] placeholder = {0, 0, 0, 0, 0, 0, 0, 0};
-	Model model;
 	
 	GameEngine lwjgl3 = new GameEngine(this);
 	
+	Shader shader;
 	Map gamemap;
 
-	Player[] players;
-
 	int territorySelected;
+
+	
+	ArrayList<Player> players = new ArrayList<Player>();
 
 	public void run() {
 		lwjgl3.create();
@@ -40,10 +39,16 @@ public class Game {
 		
 		lwjgl3.setup();
 		
-		model = new Model(placeholder, textureCoords, indices);
+		shader = new Shader("shader");
 		gamemap = new TestMap();
-		players = new Player[2];
+
 		territorySelected = -1;
+
+
+		
+		players.add(new Player(1, 0.5f, 0, 0));
+		players.add(new Player(1, 0, 0.5f, 0.5f));
+		players.add(new Player(1, 0, 0, 0.5f));
 
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
@@ -58,12 +63,35 @@ public class Game {
 
 			glfwSwapBuffers(lwjgl3.getWindowHandle()); // swap the color buffers
 		}
+		
 	}
 	
 	public void gameLoop() {
-		lwjgl3.projectRelativeCameraCoordinates();
-		gamemap.getTexture().bind();
-		model.render(0, 0, lwjgl3.getWindowWidth(), lwjgl3.getWindowHeight());
+		
+		Texture tex = new Texture("testmap.png");
+		
+		shader.bind();
+		shader.setUniform("sampler", 0);
+		
+		shader.setUniform("red", 0f);
+		shader.setUniform("green", 0f);
+		shader.setUniform("blue", 0f);
+
+		tex.bind(0);
+		lwjgl3.render(0, 0, 840, 640);
+		
+		for (int i = 0; i < gamemap.getTerritories().size(); i++) {
+			gamemap.getTerritoryTextures().get(i).bind(0);
+			float[] color = players.get(gamemap.getTerritories().get(i).getOwner()).getColor();
+			shader.setUniform("red", color[0]);
+			shader.setUniform("green", color[1]);
+			shader.setUniform("blue", color[2]);
+			lwjgl3.render(0, 0, 840, 640);
+		}
+	
+
+
+
 	}
 	
 	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos) {
@@ -75,7 +103,7 @@ public class Game {
 					if(territorySelected != t_id) {
 						gamemap.territories.get(t_id).incrementNumUnits(gamemap.territories.get(territorySelected).getNumUnits());
 						gamemap.territories.get(territorySelected).setNumUnits(0);
-						for(Unit unit: players[0].units){
+						for(Unit unit: players.get(0).units){
 							if(unit.getLocation() == territorySelected){
 								unit.setLocation(t_id);
 							}
@@ -85,7 +113,7 @@ public class Game {
 					}
 					territorySelected = -1;
 				}else {
-					players[0].units.add(new Unit(t_id));
+					players.get(0).units.add(new Unit(t_id));
 					gamemap.territories.get(t_id).incrementNumUnits(1);
 					System.out.println("Territory Clicked: " + t_id);
 					System.out.println("Units: " + gamemap.territories.get(t_id).getNumUnits());

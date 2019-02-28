@@ -28,6 +28,10 @@ public class Territory {
 		return id;
 	}
 	
+	public void setOwner(int newid) {
+		owner_id = newid;
+	}
+	
 	public int getOwner() {
 		return owner_id;
 	}
