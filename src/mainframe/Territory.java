@@ -7,14 +7,22 @@ public class Territory {
 	int owner_id;
 	int numUnits;
 	int[] true_color = new int[3];
+	int resource_type; 	//oil = 0, steel = 1, food = 2
+	int resource_amt;
 	
 	public Territory(int newid, int owner, int red, int green, int blue) {
+		this(newid, owner, red, green, blue, 0, 0);
+	}
+	
+	public Territory(int newid, int owner, int red, int green, int blue, int type, int amt) {
 		id = newid;
 		owner_id = owner;
 		true_color[0] = red;
 		true_color[1] = green;
 		true_color[2] = blue;
 		numUnits = 0;
+		resource_type = type;
+		resource_amt = amt;
 	}
 	
 	public boolean checkTrueColor(int red, int green, int blue) {
@@ -42,5 +50,13 @@ public class Territory {
 
 	public  void incrementNumUnits(int incr){numUnits += incr;}
 
+	
+	public int getResourceType() {
+		return resource_type;
+	}
+	
+	public int getResourceAmt() {
+		return resource_amt;
+	}
 
 }
