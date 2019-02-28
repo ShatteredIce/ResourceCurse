@@ -17,22 +17,10 @@ import rendering.Shader;
 import rendering.Texture;
 
 public class Game {
-
-	//Rendering variables
-	final double[] textureCoords = {0, 0, 1, 0, 1, 1, 0, 1};
-	final int[] indices = {0, 1, 2, 2, 3, 0};
-	final double[] placeholder = {-0.6, 0.6, 0, 0, 0.5, 0, 0.5, -0.5, 0};
-	final double[] placeholder2 = {-0.5, 0.5, 0, 
-									0.5, 0.5, 0,
-									0.5, -0.5, 0,
-									-0.5, -0.5, 0
-									};
-
-	Model model;
-	Shader shader;
 	
 	GameEngine lwjgl3 = new GameEngine(this);
 	
+	Shader shader;
 	Map gamemap;
 	
 	public void run() {
@@ -44,13 +32,8 @@ public class Game {
 	private void start() {
 		
 		lwjgl3.setup();
-		
-//		model = new Model(placeholder, textureCoords, indices);
-		model = new Model(placeholder2, textureCoords, indices);
 		shader = new Shader("shader");
-
-//		shader = new Shader("shader");
-
+		
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
 		while ( !glfwWindowShouldClose(lwjgl3.getWindowHandle()) ) {			
@@ -64,16 +47,19 @@ public class Game {
 
 			glfwSwapBuffers(lwjgl3.getWindowHandle()); // swap the color buffers
 		}
+		
 	}
 	
 	public void gameLoop() {
 		
 		Texture tex = new Texture("testmap.png");
-
+		
 		shader.bind();
 		shader.setUniform("sampler", 0);
+
 		tex.bind(0);
-		model.render(placeholder2);
+		lwjgl3.render(0, 0, 840, 640);
+
 
 	}
 	

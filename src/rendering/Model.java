@@ -59,7 +59,7 @@ public class Model {
 		glEnableVertexAttribArray(1);
 		
 		glBindBuffer(GL_ARRAY_BUFFER, v_id);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
+		glBufferData(GL_ARRAY_BUFFER, vertices, GL_DYNAMIC_DRAW);
 		
 //		glEnableClientState(GL_VERTEX_ARRAY);
 //		glEnableClientState(GL_TEXTURE_COORD_ARRAY);

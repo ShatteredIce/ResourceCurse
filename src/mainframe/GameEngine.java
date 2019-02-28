@@ -16,22 +16,28 @@ import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
+import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowPos;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
+import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
+import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_PROJECTION;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glLoadIdentity;
@@ -48,6 +54,9 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
+
+import rendering.Model;
+import rendering.Shader;
 
 public class GameEngine {
 	
@@ -73,6 +82,13 @@ public class GameEngine {
 	
 	public int windowXOffset = 0;
 	public int windowYOffset = 0;
+	
+	//Rendering variables
+	final double[] textureCoords = {0, 0, 1, 0, 1, 1, 0, 1};
+	final int[] indices = {0, 1, 2, 2, 3, 0};
+	final double[] placeholder = {-0.6, 0.6, 0, 0, 0.5, 0, 0.5, -0.5, 0};
+	
+	Model model;
 
 	public GameEngine(Game newgame) {
 		game = newgame;
@@ -163,6 +179,10 @@ public class GameEngine {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
 		glEnable(GL_TEXTURE_2D);
+		
+		model = new Model(placeholder, textureCoords, indices);
+		
+		
 	}
 	
 	public void destroy() {
@@ -180,43 +200,54 @@ public class GameEngine {
 	}
 	
 	//Screen projection based on relative camera coordinates
-		public void projectRelativeCameraCoordinates(){
-			glMatrixMode(GL_PROJECTION);
-	        glLoadIdentity(); // Resets any previous projection matrices
-	        glOrtho((-windowXOffset * getWidthScalar()) + viewX, viewX + cameraWidth + (windowXOffset * getWidthScalar()), viewY + cameraHeight + ((windowYOffset)* getHeightScalar()), viewY + ((-windowYOffset) * getHeightScalar()), 1, -1);
-	        glMatrixMode(GL_MODELVIEW);
-		}
-			
-		//Screen projection based on true window coordinates
-		public void projectTrueWindowCoordinates(){
-			glMatrixMode(GL_PROJECTION);
-	        glLoadIdentity(); // Resets any previous projection matrices
-	        glOrtho(-windowXOffset, WINDOW_WIDTH + windowXOffset, WINDOW_HEIGHT + windowYOffset, -windowYOffset, 1, -1);
-	        glMatrixMode(GL_MODELVIEW);
-		}
-			
-		//Scalars to help calculation
-		public double getWidthScalar(){
-			return(double) cameraWidth / (double) WINDOW_WIDTH;
-		}
-			
-		public double getHeightScalar(){
-			return(double) cameraHeight / (double) WINDOW_HEIGHT;
-		}
+	public void projectRelativeCameraCoordinates(){
+		glMatrixMode(GL_PROJECTION);
+        glLoadIdentity(); // Resets any previous projection matrices
+        glOrtho((-windowXOffset * getWidthScalar()) + viewX, viewX + cameraWidth + (windowXOffset * getWidthScalar()), viewY + cameraHeight + ((windowYOffset)* getHeightScalar()), viewY + ((-windowYOffset) * getHeightScalar()), 1, -1);
+        glMatrixMode(GL_MODELVIEW);
+	}
 		
-		public double mapWidthScalar() {
-			return (double) gameScreenWidth / (double) WINDOW_WIDTH;
-		}
+	//Screen projection based on true window coordinates
+	public void projectTrueWindowCoordinates(){
+		glMatrixMode(GL_PROJECTION);
+        glLoadIdentity(); // Resets any previous projection matrices
+        glOrtho(-windowXOffset, WINDOW_WIDTH + windowXOffset, WINDOW_HEIGHT + windowYOffset, -windowYOffset, 1, -1);
+        glMatrixMode(GL_MODELVIEW);
+	}
 		
-		public double mapHeightScalar() {
-			return (double) gameScreenHeight / (double) WINDOW_HEIGHT;
-		}
+	//Scalars to help calculation
+	public double getWidthScalar(){
+		return(double) cameraWidth / (double) WINDOW_WIDTH;
+	}
 		
-		public int getWindowWidth() {
-			return WINDOW_WIDTH;
-		}
-		public int getWindowHeight() {
-			return WINDOW_HEIGHT;
-		}
+	public double getHeightScalar(){
+		return(double) cameraHeight / (double) WINDOW_HEIGHT;
+	}
 	
+	public double mapWidthScalar() {
+		return (double) gameScreenWidth / (double) WINDOW_WIDTH;
+	}
+	
+	public double mapHeightScalar() {
+		return (double) gameScreenHeight / (double) WINDOW_HEIGHT;
+	}
+	
+	public int getWindowWidth() {
+		return WINDOW_WIDTH;
+	}
+	public int getWindowHeight() {
+		return WINDOW_HEIGHT;
+	}
+	
+	public double getGLCoordinateX(double x) {
+		return (x / (cameraWidth / 2)) - 1;
+	}
+	
+	public double getGLCoordinateY(double y) {
+		return -1*((y / (cameraHeight / 2)) - 1);
+	}
+	
+	public void render(double x1, double y1, double x2, double y2) {
+		model.render(getGLCoordinateX(x1), getGLCoordinateY(y1), getGLCoordinateX(x2), getGLCoordinateY(y2));
+	}
 }
