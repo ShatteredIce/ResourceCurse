@@ -106,13 +106,14 @@ public class Game {
 		}
 
 		tick = (tick + 1) % tick_cycle;
+		lwjgl3.moveCamera();
 
 	}
 	
 	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos) {
 		if ( button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-			System.out.println("Left Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
-			int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+			System.out.println("Left Mouse Button: " + xpos.get(1) + " " + ypos.get(1));
+			int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 			if(t_id != -1) {
 				if(territorySelected != -1){
 					if(territorySelected != t_id) {
@@ -137,14 +138,14 @@ public class Game {
 			}
 		}
 		else if( button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-			System.out.println("Right Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
-			territorySelected = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+			System.out.println("Right Mouse Button: " + xpos.get(1) + " " + ypos.get(1));
+			territorySelected = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 			System.out.println("Territory Selected: " + territorySelected);
 			System.out.println("Units: " + gamemap.territories.get(territorySelected).getNumUnits());
 
 		}
 		else if( button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
-			int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+			int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 			if(t_id != -1) {
 				System.out.println("Territory Clicked: " + t_id);
 				gamemap.getTerritories().get(t_id).setOwner(((gamemap.getTerritories().get(t_id).getOwner()) % players.size()) + 1);
