@@ -116,19 +116,60 @@ public class Game {
 			if(t_id != -1) {
 				if(territorySelected != -1){
 					if(territorySelected != t_id) {
-						gamemap.territories.get(t_id).incrementNumUnits(gamemap.territories.get(territorySelected).getNumUnits());
-						gamemap.territories.get(territorySelected).setNumUnits(0);
-						for(Unit unit: players.get(0).units){
-							if(unit.getLocation() == territorySelected){
-								unit.setLocation(t_id);
+						if(gamemap.territories.get(territorySelected).getOwner() == gamemap.territories.get(t_id).getOwner()) {
+							gamemap.territories.get(t_id).incrementNumUnits(gamemap.territories.get(territorySelected).getNumUnits());
+							gamemap.territories.get(territorySelected).setNumUnits(0);
+							for (Unit unit : players.get(gamemap.territories.get(t_id).getOwner()).units) {
+								if (unit.getLocation() == territorySelected) {
+									unit.setLocation(t_id);
+								}
 							}
+							System.out.println("Territory Clicked: " + t_id);
+							System.out.println("Units: " + gamemap.territories.get(t_id).getNumUnits());
+						}else {
+							int friendlyDamage = 0;
+							int enemyDamage = 0;
+							for(Unit unit : players.get(gamemap.territories.get(t_id).getOwner()).units){
+								if(unit.location == t_id){
+									friendlyDamage += 50;
+								}
+							}
+							for(Unit unit : players.get(gamemap.territories.get(territorySelected).getOwner()).units){
+								if(unit.location == territorySelected){
+									enemyDamage += 50;
+								}
+							}
+							for(int i = 0; i < players.get(gamemap.territories.get(territorySelected).getOwner()).units.size(); i++){
+								if(players.get(gamemap.territories.get(territorySelected).getOwner()).units.get(i).location == territorySelected){
+									if(friendlyDamage > 100){
+										players.get(gamemap.territories.get(territorySelected).getOwner()).units.remove(i);
+										friendlyDamage -= 100;
+									}else if(friendlyDamage > 0){
+										players.get(gamemap.territories.get(territorySelected).getOwner()).units.get(i).incrementHealth(-friendlyDamage);
+										friendlyDamage = 0;
+									}
+									System.out.println("Unit Health: " + players.get(gamemap.territories.get(territorySelected).getOwner()).units.get(i).getHealth());
+								}
+							}
+							for(int i = 0; i < players.get(gamemap.territories.get(t_id).getOwner()).units.size(); i++){
+								if(players.get(gamemap.territories.get(t_id).getOwner()).units.get(i).location == territorySelected){
+									if(enemyDamage > 100){
+										players.get(gamemap.territories.get(t_id).getOwner()).units.remove(i);
+										enemyDamage -= 100;
+									}else if(enemyDamage > 0){
+										players.get(gamemap.territories.get(t_id).getOwner()).units.get(i).incrementHealth(-enemyDamage);
+										enemyDamage = 0;
+									}
+								}
+								System.out.println("Unit Health: " + players.get(gamemap.territories.get(t_id).getOwner()).units.get(i).getHealth());
+
+							}
+
 						}
-						System.out.println("Territory Clicked: " + t_id);
-						System.out.println("Units: " + gamemap.territories.get(t_id).getNumUnits());
 					}
 					territorySelected = -1;
 				}else {
-					players.get(0).units.add(new Unit(t_id));
+					players.get(gamemap.territories.get(t_id).getOwner()).units.add(new Unit(t_id));
 					gamemap.territories.get(t_id).incrementNumUnits(1);
 					System.out.println("Territory Clicked: " + t_id);
 					System.out.println("Units: " + gamemap.territories.get(t_id).getNumUnits());
