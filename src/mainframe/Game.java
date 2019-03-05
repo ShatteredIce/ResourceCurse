@@ -141,9 +141,9 @@ public class Game {
 							}
 							for(int i = 0; i < players.get(gamemap.territories.get(territorySelected).getOwner()).units.size(); i++){
 								if(players.get(gamemap.territories.get(territorySelected).getOwner()).units.get(i).location == territorySelected){
-									if(friendlyDamage > 100){
+									if(friendlyDamage >= players.get(gamemap.territories.get(territorySelected).getOwner()).units.get(i).getHealth()){
+										friendlyDamage -= players.get(gamemap.territories.get(territorySelected).getOwner()).units.get(i).getHealth();
 										players.get(gamemap.territories.get(territorySelected).getOwner()).units.remove(i);
-										friendlyDamage -= 100;
 									}else if(friendlyDamage > 0){
 										players.get(gamemap.territories.get(territorySelected).getOwner()).units.get(i).incrementHealth(-friendlyDamage);
 										friendlyDamage = 0;
@@ -152,10 +152,10 @@ public class Game {
 								}
 							}
 							for(int i = 0; i < players.get(gamemap.territories.get(t_id).getOwner()).units.size(); i++){
-								if(players.get(gamemap.territories.get(t_id).getOwner()).units.get(i).location == territorySelected){
-									if(enemyDamage > 100){
+								if(players.get(gamemap.territories.get(t_id).getOwner()).units.get(i).location == t_id){
+									if(enemyDamage >=  players.get(gamemap.territories.get(t_id).getOwner()).units.get(i).getHealth()){
+										enemyDamage -=  players.get(gamemap.territories.get(t_id).getOwner()).units.get(i).getHealth();
 										players.get(gamemap.territories.get(t_id).getOwner()).units.remove(i);
-										enemyDamage -= 100;
 									}else if(enemyDamage > 0){
 										players.get(gamemap.territories.get(t_id).getOwner()).units.get(i).incrementHealth(-enemyDamage);
 										enemyDamage = 0;
