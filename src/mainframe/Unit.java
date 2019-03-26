@@ -33,4 +33,6 @@ public class Unit {
     public void setHealth(int health) {
         this.health = health;
     }
+
+    public void incrementHealth(int incr){health += incr;}
 }

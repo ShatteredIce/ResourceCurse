@@ -14,7 +14,7 @@ import rendering.Texture;
 
 public class Game {
 	
-	GameEngine lwjgl3 = new GameEngine(this);
+	GameEngine engine = new GameEngine(this);
 	
 	Shader shader;
 	Map gamemap;
@@ -40,17 +40,16 @@ public class Game {
 	int tick_cycle = 100;
 	
 	public void run() {
-		lwjgl3.create();
+		engine.create();
 		start();
-		lwjgl3.destroy();
+		engine.destroy();
 	}
 
 	private void start() {
 		
-		lwjgl3.setup();
+		engine.setup();
 		
 		shader = new Shader("shader");
-		maptex = new Texture("testmap.png");
 		gamemap = new TestMap();
 		unittex = new Texture("unit.png");
 		selectedunittex = new Texture("selectedunit.png");
@@ -64,7 +63,7 @@ public class Game {
 		players.add(new Player(3, 0, 0, 0.5f));
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
-		while ( !glfwWindowShouldClose(lwjgl3.getWindowHandle()) ) {			
+		while ( !glfwWindowShouldClose(engine.getWindowHandle()) ) {			
 			// Poll for window events. The key callback above will only be
 			// invoked during this call.
 			glfwPollEvents();
@@ -73,7 +72,7 @@ public class Game {
 
 			gameLoop();
 
-			glfwSwapBuffers(lwjgl3.getWindowHandle()); // swap the color buffers
+			glfwSwapBuffers(engine.getWindowHandle()); // swap the color buffers
 		}
 		
 	}
@@ -87,8 +86,8 @@ public class Game {
 		shader.setUniform("green", 0f);
 		shader.setUniform("blue", 0f);
 
-		maptex.bind(0);
-		lwjgl3.render(0, 0, 840, 640);
+		gamemap.bindTexture();
+		engine.render(0, 0, 840, 640);
 		
 		//draw all territories
 		for (int i = 0; i < gamemap.getTerritories().size(); i++) {
@@ -97,7 +96,7 @@ public class Game {
 			shader.setUniform("red", color[0]);
 			shader.setUniform("green", color[1]);
 			shader.setUniform("blue", color[2]);
-			lwjgl3.render(0, 0, 840, 640);
+			engine.render(0, 0, 840, 640);
 		}
 		
 		//draw all units
@@ -115,11 +114,11 @@ public class Game {
 					double magnitude = Math.sqrt(Math.pow(invslope, 2) + 1);
 					double rise = invslope / magnitude;
 					double run = 1 / magnitude;
-					lwjgl3.render(center[0] + 40*run, center[1] + 40*rise, center[0] - 40*run, center[1] - 40*rise,
+					engine.render(center[0] + 40*run, center[1] + 40*rise, center[0] - 40*run, center[1] - 40*rise,
 							targetcenter[0] - 40*run, targetcenter[1] - 40*rise, targetcenter[0] + 40*run, targetcenter[1] + 40*rise);
 					unittex.bind(0);
 				}
-				lwjgl3.render(center[0] - 40, center[1] - 40, center[0] + 40, center[1] + 40);
+				engine.render(center[0] - 40, center[1] - 40, center[0] + 40, center[1] + 40);
 			}
 		}
 		if(selectedUnit != null) {
@@ -129,7 +128,7 @@ public class Game {
 			shader.setUniform("blue", color[2]);
 			selectedunittex.bind(0);
 			int center[] = gamemap.getTerritories().get(selectedUnit.getLocation()).center;
-			lwjgl3.render(center[0] - 40, center[1] - 40, center[0] + 40, center[1] + 40);
+			engine.render(center[0] - 40, center[1] - 40, center[0] + 40, center[1] + 40);
 		}
 		
 		//give players resources
@@ -153,6 +152,10 @@ public class Game {
 			turnNum++;
 		}
 
+		tick = (tick + 1) % tick_cycle;
+		
+		engine.moveCamera();
+
 	}
 	
 	public void moveUnits() {
@@ -172,8 +175,8 @@ public class Game {
 			if(selectedUnit != null) {
 				selectedUnit = null;
 			}
-			System.out.println("Left Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
-			int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+			System.out.println("Left Mouse Button: " + xpos.get(1) + " " + ypos.get(1));
+			int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 			if(t_id != -1) {
 				//deploy diplomatic control points
 				if(deployType == 0 && controlledPlayer.getResources()[0] > 0) {
@@ -190,7 +193,7 @@ public class Game {
 		}
 		else if( button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 			System.out.println("Right Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
-			int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+			int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 			if(t_id != -1) {
 				if(selectedUnit == null) {
 					for (int i = 0; i < controlledPlayer.getUnits().size(); i++) {

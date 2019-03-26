@@ -1,48 +1,8 @@
 package mainframe;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
-import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
-import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
-import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
-import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
-import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
-import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
-import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
-import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
-import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
-import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
-import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
-import static org.lwjgl.glfw.GLFW.glfwInit;
-import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
-import static org.lwjgl.glfw.GLFW.glfwPollEvents;
-import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowPos;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
-import static org.lwjgl.glfw.GLFW.glfwShowWindow;
-import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
-import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
-import static org.lwjgl.glfw.GLFW.glfwTerminate;
-import static org.lwjgl.glfw.GLFW.glfwWindowHint;
-import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_PROJECTION;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glLoadIdentity;
-import static org.lwjgl.opengl.GL11.glMatrixMode;
-import static org.lwjgl.opengl.GL11.glOrtho;
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -68,9 +28,12 @@ public class GameEngine {
 	final int WINDOW_WIDTH = 840;
 	final int WINDOW_HEIGHT = 640;
 	
+	int worldWidth = 840;
+	int worldHeight = 640;
+	
 	//Setup for variables for game frame
 	
-	int gameScreenWidth = 640;
+	int gameScreenWidth = 840;
 	int gameScreenHeight = 640;
 	
 	//Setup variables for camera
@@ -79,6 +42,7 @@ public class GameEngine {
 	public double cameraSpeed = 10;
 	public double cameraWidth = 840;
 	public double cameraHeight = 640;
+	public final int CAMERA_SPEED = 30;
 	
 	public int windowXOffset = 0;
 	public int windowYOffset = 0;
@@ -89,6 +53,11 @@ public class GameEngine {
 	final double[] placeholder = {-0.6, 0.6, 0, 0, 0.5, 0, 0.5, -0.5, 0};
 	
 	Model model;
+	
+	boolean panLeft = false;
+    boolean panRight = false;
+    boolean panUp = false;
+    boolean panDown = false;
 
 	public GameEngine(Game newgame) {
 		game = newgame;
@@ -114,7 +83,32 @@ public class GameEngine {
 		}
 		// Setup a key callback. It will be called every time a key is pressed, repeated or released.
 		glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-			game.onKeyPressed(window, key, scancode, action, mods);
+			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE ) {
+				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+			}
+			//pan camera
+			else if ( key == GLFW_KEY_LEFT && action == GLFW_PRESS )
+				panLeft = true;
+			else if ( key == GLFW_KEY_LEFT && action == GLFW_RELEASE )
+				panLeft = false;
+			
+			else if ( key == GLFW_KEY_RIGHT && action == GLFW_PRESS )
+				panRight = true;
+			else if ( key == GLFW_KEY_RIGHT && action == GLFW_RELEASE )
+				panRight = false;
+			
+			else if ( key == GLFW_KEY_UP && action == GLFW_PRESS )
+				panUp = true;
+			else if ( key == GLFW_KEY_UP && action == GLFW_RELEASE )
+				panUp = false;
+			
+			else if ( key == GLFW_KEY_DOWN && action == GLFW_PRESS )
+				panDown = true;
+			else if ( key == GLFW_KEY_DOWN && action == GLFW_RELEASE )
+				panDown = false;
+			else{
+				game.onKeyPressed(window, key, scancode, action, mods);
+			}
 		});
 		
 		//mouse clicks
@@ -132,6 +126,16 @@ public class GameEngine {
 			xpos.put(2, xpos.get(0) - windowXOffset);
 			ypos.put(2, ypos.get(0) - windowYOffset);
 			game.onMouseClick(button, action, xpos, ypos);
+		});
+		//mouse scroll
+		glfwSetScrollCallback(window, (window, xoffset, yoffset) -> {
+			//If they scrolled up, zoom in. If they scrolled down, zoom out.
+			if (yoffset > 0) {
+				updateZoomLevel(false);
+			}
+			if (yoffset < 0) {
+				updateZoomLevel(true);
+			}
 		});
 
 		// Get the thread stack and push a new frame
@@ -239,11 +243,11 @@ public class GameEngine {
 	}
 	
 	public double getGLCoordinateX(double x) {
-		return (x / (cameraWidth / 2)) - 1;
+		return ((x - viewX) / (cameraWidth / 2)) - 1;
 	}
 	
 	public double getGLCoordinateY(double y) {
-		return -1*((y / (cameraHeight / 2)) - 1);
+		return -1*(((y - viewY) / (cameraHeight / 2)) - 1);
 	}
 	
 	public void render(double x1, double y1, double x2, double y2) {
@@ -253,5 +257,98 @@ public class GameEngine {
 	public void render(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
 		model.render(new double[]{getGLCoordinateX(x1) ,getGLCoordinateY(y1) , 0, getGLCoordinateX(x2), getGLCoordinateY(y2), 0,
 				getGLCoordinateX(x3), getGLCoordinateY(y3), 0, getGLCoordinateX(x4), getGLCoordinateY(y4), 0});
+	}
+
+	//scroll view camera
+	public void moveCamera() {
+		if (panLeft) {
+			viewX = Math.max(0, viewX - cameraWidth / CAMERA_SPEED);
+		}
+		if (panRight) {
+			viewX = Math.min(worldWidth - cameraWidth * (double) gameScreenWidth / (double) WINDOW_WIDTH, viewX + cameraWidth / CAMERA_SPEED);
+		}
+		if (panDown) {
+			viewY = Math.min(worldHeight - cameraHeight * (double) gameScreenHeight / (double) WINDOW_HEIGHT, viewY + cameraHeight / CAMERA_SPEED);
+		}
+		if (panUp) {
+			viewY = Math.max(0, viewY - cameraHeight / CAMERA_SPEED);
+		}
+	}
+	
+	//Zoom camera in or out
+	public void updateZoomLevel(boolean zoomOut){
+		DoubleBuffer xpos = BufferUtils.createDoubleBuffer(3);
+		DoubleBuffer ypos = BufferUtils.createDoubleBuffer(3);
+		glfwGetCursorPos(window, xpos, ypos);
+		//Convert the glfw coordinate to our coordinate system
+		xpos.put(0, Math.min(Math.max(xpos.get(0), windowXOffset), WINDOW_WIDTH + windowXOffset));
+		ypos.put(0, Math.min(Math.max(ypos.get(0), windowYOffset), WINDOW_HEIGHT + windowYOffset));
+		//Relative camera coordinates
+		xpos.put(1, getWidthScalar() * (xpos.get(0) - windowXOffset) + viewX);
+		ypos.put(1, getHeightScalar() * (ypos.get(0) - windowYOffset) + viewY);
+		//True window coordinates
+		xpos.put(2, xpos.get(0) - windowXOffset);
+		ypos.put(2, ypos.get(0) - windowYOffset);
+		
+		boolean mouseInFrame = false;
+		double oldX = xpos.get(1);
+		double oldY = ypos.get(1);
+		double xAxisDistance = 0;
+		double yAxisDistance = 0;
+		
+		if(xpos.get(2) > 0 && xpos.get(2) < gameScreenWidth && ypos.get(2) > 0 && ypos.get(2) < gameScreenHeight){
+			mouseInFrame = true;
+			xAxisDistance = xpos.get(2)/WINDOW_WIDTH;
+			yAxisDistance = ypos.get(2)/WINDOW_HEIGHT;
+			System.out.println(xAxisDistance + " " + yAxisDistance);
+		}
+		
+		int MIN_WIDTH = 100;
+		int MIN_HEIGHT = 100;
+		int MAX_WIDTH = WINDOW_WIDTH;
+		int MAX_HEIGHT = WINDOW_HEIGHT;
+		
+		double zoomLevel = 4d/3d;
+		
+		if(!mouseInFrame) {
+			oldX = viewX + (cameraWidth * gameScreenWidth/WINDOW_WIDTH)/2;
+			oldY = viewY + (cameraHeight * gameScreenHeight/WINDOW_HEIGHT)/2;
+			xAxisDistance = (gameScreenWidth/2d/WINDOW_WIDTH);
+			yAxisDistance = (gameScreenHeight/2d/WINDOW_HEIGHT);
+		}
+		
+		//Zooms out camera
+		if(zoomOut){
+			if(cameraWidth * zoomLevel <= MAX_WIDTH && cameraHeight * zoomLevel <= MAX_HEIGHT){
+				cameraWidth *= zoomLevel;
+				cameraHeight *= zoomLevel;
+				viewX = oldX - cameraWidth * xAxisDistance;
+				viewY = oldY - cameraHeight * yAxisDistance;
+//					System.out.println(viewX + " " + cameraWidth); 
+				double gameScreenCameraWidth = cameraWidth * gameScreenWidth / WINDOW_WIDTH;
+				double gameScreenCameraHeight = cameraHeight * gameScreenHeight / WINDOW_HEIGHT;
+				if(viewX + gameScreenCameraWidth > worldWidth){
+					viewX = worldWidth - gameScreenCameraWidth;
+				}
+				if(viewY + gameScreenCameraHeight > worldHeight){
+					viewY = worldHeight - gameScreenCameraHeight;
+				}
+				if(viewX < 0){
+					viewX = 0;
+				}
+				if(viewY < 0){
+					viewY = 0;
+				}
+			}
+		}
+		else{ // Zooms in camera
+			if(cameraWidth / zoomLevel >= MIN_WIDTH && cameraHeight / zoomLevel >= MIN_HEIGHT){
+				cameraWidth /= zoomLevel;
+				cameraHeight /= zoomLevel;
+				viewX = oldX - cameraWidth * xAxisDistance;
+				viewY = oldY - cameraHeight * yAxisDistance;
+				System.out.println(viewX + " " + viewY);
+			}
+		}
 	}
 }

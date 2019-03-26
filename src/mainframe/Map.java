@@ -51,8 +51,8 @@ public abstract class Map {
 		}
 	}
 	
-	public Texture getTexture() {
-		return base_map;
+	public void bindTexture() {
+		base_map.bind(0);
 	}
 	
 	public ArrayList<Texture> getTerritoryTextures(){
