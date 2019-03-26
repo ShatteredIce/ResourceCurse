@@ -114,8 +114,7 @@ public class GameEngine {
 		}
 		// Setup a key callback. It will be called every time a key is pressed, repeated or released.
 		glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
-				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+			game.onKeyPressed(window, key, scancode, action, mods);
 		});
 		
 		//mouse clicks
@@ -249,5 +248,10 @@ public class GameEngine {
 	
 	public void render(double x1, double y1, double x2, double y2) {
 		model.render(getGLCoordinateX(x1), getGLCoordinateY(y1), getGLCoordinateX(x2), getGLCoordinateY(y2));
+	}
+	
+	public void render(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+		model.render(new double[]{getGLCoordinateX(x1) ,getGLCoordinateY(y1) , 0, getGLCoordinateX(x2), getGLCoordinateY(y2), 0,
+				getGLCoordinateX(x3), getGLCoordinateY(y3), 0, getGLCoordinateX(x4), getGLCoordinateY(y4), 0});
 	}
 }

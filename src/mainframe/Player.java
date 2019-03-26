@@ -4,11 +4,10 @@ import java.util.ArrayList;
 
 public class Player {
 	
-	int id;
-	
-	float[] color;
+	private int id;
+	private float[] color;
 
-	ArrayList<Unit> units;
+	private ArrayList<Unit> units;
 
 	int[] resources = new int[] {0, 0, 0};
 	//oil = 0, steel = 1, food = 2
@@ -41,6 +40,18 @@ public class Player {
 	
 	public int getId() {
 		return id;
+	}
+	
+	public void addUnit(Unit u){
+		units.add(u);
+	}
+	
+	public ArrayList<Unit> getUnits(){
+		return units;
+	}
+	
+	public int numUnits() {
+		return units.size();
 	}
 
 }
