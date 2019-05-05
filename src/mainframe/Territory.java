@@ -11,6 +11,7 @@ public class Territory {
 	int resource_amt;
 	int[] diplomatic_points = new int[9];
 	int[] center;
+	Unit occupying = null;
 	
 	public Territory(int newid, int owner, int red, int green, int blue, int x, int y) {
 		this(newid, owner, red, green, blue, x, y, 0, 0);
@@ -64,6 +65,14 @@ public class Territory {
 	
 	public int[] getDiplomaticPoints() {
 		return diplomatic_points;
+	}
+	
+	public void setOccupyingUnit(Unit u) {
+		occupying = u;
+	}
+	
+	public Unit getOccupyingUnit() {
+		return occupying;
 	}
 	
 

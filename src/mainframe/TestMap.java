@@ -11,7 +11,7 @@ public class TestMap extends Map {
 		
 		territories.add(new Territory(0, 1, 255, 0, 0, 260, 180, 0, 2));
 		territories.add(new Territory(1, 0, 0, 125, 125, 320, 435, 0, 1));
-		territories.add(new Territory(2, 1, 125, 0, 0, 390, 255, 1, 1));
+		territories.add(new Territory(2, 1, 125, 0, 0, 390, 255, 1, 2));
 		territories.add(new Territory(3, 0, 0, 0, 125, 580, 215));
 		territories.add(new Territory(4, 0, 0, 0, 255, 570, 405));
 		

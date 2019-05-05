@@ -22,6 +22,7 @@ public class Game {
 	Texture unittex;
 	Texture selectedunittex;
 	Texture movearrowtex;
+	Texture supportarrowtex;
 
 	Unit selectedUnit = null;
 	
@@ -35,9 +36,10 @@ public class Game {
 	Player neutral = new Player(0, 0.8f, 0.8f, 0.8f);
 	Player controlledPlayer = new Player(1, 0.5f, 0, 0);
 
-
 	int tick = 1;
 	int tick_cycle = 100;
+	
+	int[][] combatArray;
 	
 	public void run() {
 		engine.create();
@@ -54,6 +56,7 @@ public class Game {
 		unittex = new Texture("unit.png");
 		selectedunittex = new Texture("selectedunit.png");
 		movearrowtex = new Texture("movearrow.png");
+		supportarrowtex = new Texture("supportarrow.png");
 
 		
 		//players id start at 1
@@ -61,6 +64,9 @@ public class Game {
 		players.add(controlledPlayer);
 		players.add(new Player(2, 0, 0.5f, 0.5f));
 		players.add(new Player(3, 0, 0, 0.5f));
+		
+		combatArray = new int[gamemap.getTerritories().size()][players.size()];
+				
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
 		while ( !glfwWindowShouldClose(engine.getWindowHandle()) ) {			
@@ -89,7 +95,7 @@ public class Game {
 		gamemap.bindTexture();
 		engine.render(0, 0, 840, 640);
 		
-		//draw all territories
+		//draw territories
 		for (int i = 0; i < gamemap.getTerritories().size(); i++) {
 			gamemap.getTerritoryTextures().get(i).bind(0);
 			float[] color = players.get(gamemap.getTerritories().get(i).getOwner()).getColor();
@@ -99,7 +105,7 @@ public class Game {
 			engine.render(0, 0, 840, 640);
 		}
 		
-		//draw all units
+		//draw units
 		unittex.bind(0);
 		shader.setUniform("red", 0f);
 		shader.setUniform("green", 0f);
@@ -108,7 +114,12 @@ public class Game {
 			for (Unit u : p.getUnits()) {
 				int center[] = gamemap.getTerritories().get(u.getLocation()).center;
 				if(u.getTarget() != -1) {
-					movearrowtex.bind(0);
+					if(u.isSupporting()) {
+						supportarrowtex.bind(0);
+					}
+					else {
+						movearrowtex.bind(0);
+					}
 					int targetcenter[] = gamemap.getTerritories().get(u.getTarget()).center;
 					double invslope = -1/(((double) targetcenter[1] - center[1]) / ((double) targetcenter[0] - center[0]));
 					double magnitude = Math.sqrt(Math.pow(invslope, 2) + 1);
@@ -159,12 +170,91 @@ public class Game {
 	}
 	
 	public void moveUnits() {
+		for (int i = 0; i < combatArray.length; i++) {
+			for (int j = 0; j < combatArray[0].length; j++) {
+				combatArray[i][j] = 0;
+			}
+		}
+		//set up combat array
 		for (Player p : players) {
 			for (Unit u : p.getUnits()) {
-				if(u.getTarget() != -1) {
-					u.setLocation(u.getTarget());
-					u.setTarget(-1);
+				u.setMoveStatus(0);
+				u.setVictorious(false);
+
+				if(u.getTarget() == -1) {
+					combatArray[u.getLocation()][p.getId()]++;
 				}
+				else if(u.getTarget() != -1) {
+					combatArray[u.getTarget()][p.getId()]++;
+				}
+			}
+		}
+		//set move status for each unit
+		for (Player p : players) {
+			for (Unit u : p.getUnits()) {
+				//unit is moving
+				if(u.getTarget() != -1 && !u.isSupporting()) {
+					//cannot move into own units
+					if(gamemap.getTerritories().get(u.getTarget()).getOccupyingUnit() != null && 
+							gamemap.getTerritories().get(u.getTarget()).getOccupyingUnit().getOwnerId() == p.getId()) {
+						Unit temp = gamemap.getTerritories().get(u.getTarget()).getOccupyingUnit();
+						if(temp.getTarget() != -1 && !temp.isSupporting()) {
+							u.setMoveStatus(2);
+						}
+						else {
+							u.setMoveStatus(0);
+						}
+	
+					}
+					else{
+						int moveStrength = combatArray[u.getTarget()][p.getId()];
+						for (int i = 0; i < players.size(); i++) {
+							if(i != p.getId() && combatArray[u.getTarget()][i] >= moveStrength) {
+								u.setMoveStatus(0);
+								break;
+							}
+							//last check
+							else if(i == players.size() - 1) {
+								u.setMoveStatus(1);
+							}
+						}
+					}
+				}
+
+			}
+		}
+		//iterate through units
+		boolean unitsPending = false;
+		int recurse = 0;
+		do {
+			unitsPending = false;
+			for (Player p : players) {
+				for (Unit u : p.getUnits()) {
+					if(u.getMoveStatus() == 1) {
+						gamemap.getTerritories().get(u.getLocation()).setOccupyingUnit(null);
+						gamemap.getTerritories().get(u.getTarget()).setOccupyingUnit(u);
+						u.setLocation(u.getTarget());
+						u.setVictorious(true);
+					}
+					else if(u.getMoveStatus() == 2) {
+						unitsPending = true;
+						if(gamemap.getTerritories().get(u.getTarget()).getOccupyingUnit() == null) {
+							u.setMoveStatus(1);
+						}
+					}
+				}
+			}
+			if(unitsPending) {
+				recurse++;
+			}
+		} while(unitsPending && recurse < 20);
+		
+		//clear orders
+		for (Player p : players) {
+			for (Unit u : p.getUnits()) {
+				u.setMoveStatus(0);
+				u.setTarget(-1);
+				u.setSupportMove(false);
 			}
 		}
 	}
@@ -185,8 +275,24 @@ public class Game {
 				}
 				//deploy mil units on controlled territories only
 				else if(deployType == 1 && controlledPlayer.getResources()[1] > 0 && gamemap.getTerritories().get(t_id).getOwner() == controlledPlayer.getId()) {
-					controlledPlayer.addUnit(new Unit(t_id));
-					controlledPlayer.subResource(1, 1);
+					//can only have 1 unit per territory
+					boolean hasUnit = false;
+					for (Unit u : controlledPlayer.getUnits()) {
+						if(u.getLocation() == t_id) {
+							hasUnit = true;
+							break;
+						}
+					}
+					if(!hasUnit) {
+						Unit u = new Unit(t_id, controlledPlayer.getId());
+						gamemap.getTerritories().get(t_id).setOccupyingUnit(u);
+						controlledPlayer.addUnit(u);
+						controlledPlayer.subResource(1, 1);
+					}
+					//debug
+					else {
+						System.out.println("Cannot deploy unit");
+					}
 				}
 			}
 	
@@ -197,18 +303,38 @@ public class Game {
 			if(t_id != -1) {
 				if(selectedUnit == null) {
 					for (int i = 0; i < controlledPlayer.getUnits().size(); i++) {
-						System.out.println(controlledPlayer.getUnits().get(i).getLocation() +  " " + t_id);
+//						System.out.println(controlledPlayer.getUnits().get(i).getLocation() +  " " + t_id);
 						if(controlledPlayer.getUnits().get(i).getLocation() == t_id) {
 							selectedUnit = controlledPlayer.getUnits().get(i);
 						}
 					}
 				}
+				//players move units
 				else if(selectedUnit != null) {
 					if(t_id != selectedUnit.getLocation()) {
+						boolean supporting = shiftPressed ? true : false;
+						for (Unit u : controlledPlayer.getUnits()) {
+							if(u != selectedUnit && u.getTarget() == t_id && u.isSupporting() == false) {
+								supporting = true;
+							}
+						}
 						selectedUnit.setTarget(t_id);
+						if(supporting) {
+							selectedUnit.setSupportMove(true);
+						}
+						else {
+							selectedUnit.setSupportMove(false);
+						}
+					}
+					else if(t_id == selectedUnit.getLocation()) {
+						selectedUnit.setTarget(-1);
+						selectedUnit.setSupportMove(false);
 					}
 					selectedUnit = null;
 				}
+			}
+			else {
+				selectedUnit = null;
 			}
 		}
 		else if( button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
@@ -217,10 +343,12 @@ public class Game {
 			}
 			int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
 			if(t_id != -1) {
+				//change territory ownership
 				if(shiftPressed) {
 					System.out.println("Territory Clicked: " + t_id);
 					gamemap.getTerritories().get(t_id).setOwner((gamemap.getTerritories().get(t_id).getOwner() + 1) % players.size());
 				}
+				//get territory info
 				else {
 					System.out.println("Territory Clicked: " + t_id);
 					int[] diplo = gamemap.getTerritories().get(t_id).getDiplomaticPoints();
