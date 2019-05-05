@@ -152,6 +152,7 @@ public class Game {
 			}
 			for (Territory t : gamemap.getTerritories()) {
 				players.get(t.getOwner()).addResource(t.getResourceType(), t.getResourceAmt());
+				players.get(t.influenced_by).addResource(t.getResourceType(),t.getResourceAmt());
 			}
 			for (int i = 1; i < players.size(); i++) {
 				Player p = players.get(i);
@@ -258,6 +259,15 @@ public class Game {
 			}
 		}
 	}
+
+	public boolean checkAdjacent(int location, int target){
+	    for(int adj : gamemap.getTerritories().get(target).adjacent){
+	        if(location == adj){
+	            return true;
+            }
+        }
+        return false;
+    }
 	
 	//mouse clicks
 	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos) {
@@ -294,6 +304,10 @@ public class Game {
 						System.out.println("Cannot deploy unit");
 					}
 				}
+				else if(deployType == 2 && controlledPlayer.getResources()[2] > 0 && gamemap.getTerritories().get(t_id).getOwner() == controlledPlayer.getId()){
+				    gamemap.getTerritories().get(t_id).addEconomicPoints(1);
+				    controlledPlayer.subResource(2,1);
+                }
 			}
 	
 		}
@@ -311,7 +325,7 @@ public class Game {
 				}
 				//players move units
 				else if(selectedUnit != null) {
-					if(t_id != selectedUnit.getLocation()) {
+					if(t_id != selectedUnit.getLocation() && checkAdjacent(selectedUnit.getLocation(),t_id)) {
 						boolean supporting = shiftPressed ? true : false;
 						for (Unit u : controlledPlayer.getUnits()) {
 							if(u != selectedUnit && u.getTarget() == t_id && u.isSupporting() == false) {
@@ -351,6 +365,8 @@ public class Game {
 				//get territory info
 				else {
 					System.out.println("Territory Clicked: " + t_id);
+					System.out.println("Owner: " + gamemap.getTerritories().get(t_id).owner_id);
+					System.out.println("Influenced By: " + gamemap.getTerritories().get(t_id).influenced_by);
 					int[] diplo = gamemap.getTerritories().get(t_id).getDiplomaticPoints();
 					for (int p = 1; p < players.size(); p++) {
 						System.out.println("Player " + (p) + " : "+ diplo[p] + " DP");
@@ -374,6 +390,10 @@ public class Game {
 			deployType = 1;
 			System.out.println("Deploying Military Units");
 		}
+        if ( key == GLFW_KEY_2&& action == GLFW_RELEASE ) {
+            deployType = 2;
+            System.out.println("Deploying Economic Points");
+        }
 		if ( key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS )
 			shiftPressed = true;
 		if ( key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE )
