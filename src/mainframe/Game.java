@@ -7,14 +7,13 @@ import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 
-import com.esotericsoftware.kryonet.*;
-
 
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.kryonet.Connection;
 
 import packets.MapInfo;
+import packets.MouseClick;
 import packets.PlayerInfo;
 import packets.TerritoryInfo;
 import packets.TurnStatus;
@@ -62,6 +61,7 @@ public class Game extends Listener {
 	ArrayList<Unit> allUnits = new ArrayList<Unit>();
 	Player neutral = new Player(0, 0.8f, 0.8f, 0.8f);
 	Player controlledPlayer = new Player(1, 0.5f, 0, 0);
+	int myPlayerId = 1;
 	
 	int[][] combatArray;
 	
@@ -81,6 +81,7 @@ public class Game extends Listener {
 		server.getKryo().register(PlayerInfo.class);
 		server.getKryo().register(MapInfo.class);
 		server.getKryo().register(TerritoryInfo.class);
+		server.getKryo().register(MouseClick.class);
 		server.bind(tcpPort, udpPort);
 		
 		//Start server
@@ -153,6 +154,10 @@ public class Game extends Listener {
 		if(obj instanceof TurnStatus){
 			TurnStatus packet = (TurnStatus) obj;
 			nextTurnArray[c.getID()+1] = packet.getStatus();
+		}
+		else if(obj instanceof MouseClick) {
+			MouseClick packet = (MouseClick) obj;
+			onMouseClick(packet.getButton(), packet.getAction(), DoubleBuffer.wrap(packet.getX()), DoubleBuffer.wrap(packet.getY()), packet.getPlayerId());
 		}
 	}
 	
@@ -388,8 +393,9 @@ public class Game extends Listener {
         return false;
     }
 	
+	
 	//mouse clicks
-	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos) {
+	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos, int playerId) {
 		if(gameState == 1) {
 			if ( button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 				if(selectedUnit != null) {
@@ -399,35 +405,36 @@ public class Game extends Listener {
 				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 				if(t_id != -1) {
 					//deploy diplomatic control points
-					if(deployType == 0 && controlledPlayer.getResources()[0] > 0) {
-						gamemap.getTerritories().get(t_id).addDiplomaticPoints(1, controlledPlayer.getId());
-						controlledPlayer.subResource(0, 1);
+					if(deployType == 0 && players.get(playerId).getResources()[0] > 0) {
+						gamemap.getTerritories().get(t_id).addDiplomaticPoints(1, players.get(playerId).getId());
+						players.get(playerId).subResource(0, 1);
 					}
 					//deploy mil units on controlled territories only
-					else if(deployType == 1 && controlledPlayer.getResources()[1] > 0 && gamemap.getTerritories().get(t_id).getOwner() == controlledPlayer.getId()) {
+					else if(deployType == 1 && players.get(playerId).getResources()[1] > 0 && gamemap.getTerritories().get(t_id).getOwner() == players.get(playerId).getId()) {
 						//can only have 1 unit per territory
 						boolean hasUnit = false;
-						for (Unit u : controlledPlayer.getUnits()) {
+						for (Unit u : players.get(playerId).getUnits()) {
 							if(u.getLocation() == t_id) {
 								hasUnit = true;
 								break;
 							}
 						}
 						if(!hasUnit) {
-							Unit u = new Unit(t_id, controlledPlayer.getId());
+							Unit u = new Unit(t_id, players.get(playerId).getId());
 							gamemap.getTerritories().get(t_id).setOccupyingUnit(u);
 							allUnits.add(u);
-							controlledPlayer.addUnit(u);
-							controlledPlayer.subResource(1, 1);
+							players.get(playerId).addUnit(u);
+							players.get(playerId).subResource(1, 1);
+							server.sendToAllTCP(new UnitPositions(allUnits));
 						}
 						//debug
 						else {
 							System.out.println("Cannot deploy unit");
 						}
 					}
-					else if(deployType == 2 && controlledPlayer.getResources()[2] > 0 && gamemap.getTerritories().get(t_id).getOwner() == controlledPlayer.getId()){
+					else if(deployType == 2 && players.get(playerId).getResources()[2] > 0 && gamemap.getTerritories().get(t_id).getOwner() == players.get(playerId).getId()){
 					    gamemap.getTerritories().get(t_id).addEconomicPoints(1);
-					    controlledPlayer.subResource(2,1);
+					    players.get(playerId).subResource(2,1);
 	                }
 				}
 			}
@@ -436,10 +443,10 @@ public class Game extends Listener {
 				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 				if(t_id != -1) {
 					if(selectedUnit == null) {
-						for (int i = 0; i < controlledPlayer.getUnits().size(); i++) {
-	//						System.out.println(controlledPlayer.getUnits().get(i).getLocation() +  " " + t_id);
-							if(controlledPlayer.getUnits().get(i).getLocation() == t_id) {
-								selectedUnit = controlledPlayer.getUnits().get(i);
+						for (int i = 0; i < players.get(playerId).getUnits().size(); i++) {
+	//						System.out.println(players.get(playerId).getUnits().get(i).getLocation() +  " " + t_id);
+							if(players.get(playerId).getUnits().get(i).getLocation() == t_id) {
+								selectedUnit = players.get(playerId).getUnits().get(i);
 							}
 						}
 					}
@@ -447,7 +454,7 @@ public class Game extends Listener {
 					else if(selectedUnit != null) {
 						if(t_id != selectedUnit.getLocation() && checkAdjacent(selectedUnit.getLocation(),t_id)) {
 							boolean supporting = shiftPressed ? true : false;
-							for (Unit u : controlledPlayer.getUnits()) {
+							for (Unit u : players.get(playerId).getUnits()) {
 								if(u != selectedUnit && u.getTarget() == t_id && u.isSupporting() == false) {
 									supporting = true;
 								}
@@ -540,6 +547,10 @@ public class Game extends Listener {
 	
 	public static void main(String[] args) throws IOException {
 		new Game().run();
+	}
+	
+	public int getPlayerId() {
+		return myPlayerId;
 	}
 
 }

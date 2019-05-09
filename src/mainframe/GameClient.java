@@ -16,6 +16,7 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.*;
 
 import packets.MapInfo;
+import packets.MouseClick;
 import packets.PlayerInfo;
 import packets.TerritoryInfo;
 import packets.TurnStatus;
@@ -82,6 +83,7 @@ public class GameClient extends Listener {
 		client.getKryo().register(PlayerInfo.class);
 		client.getKryo().register(MapInfo.class);
 		client.getKryo().register(TerritoryInfo.class);
+		client.getKryo().register(MouseClick.class);
 		//start the client
 		client.start();
 		
@@ -268,110 +270,11 @@ public class GameClient extends Listener {
 	
 	//mouse clicks
 	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos) {
-//		if(gameState == 1) {
-//			if ( button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-//				if(selectedUnit != null) {
-//					selectedUnit = null;
-//				}
-//				System.out.println("Left Mouse Button: " + xpos.get(1) + " " + ypos.get(1));
-//				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
-//				if(t_id != -1) {
-//					//deploy diplomatic control points
-//					if(deployType == 0 && controlledPlayer.getResources()[0] > 0) {
-//						gamemap.getTerritories().get(t_id).addDiplomaticPoints(1, controlledPlayer.getId());
-//						controlledPlayer.subResource(0, 1);
-//					}
-//					//deploy mil units on controlled territories only
-//					else if(deployType == 1 && controlledPlayer.getResources()[1] > 0 && gamemap.getTerritories().get(t_id).getOwner() == controlledPlayer.getId()) {
-//						//can only have 1 unit per territory
-//						boolean hasUnit = false;
-//						for (Unit u : controlledPlayer.getUnits()) {
-//							if(u.getLocation() == t_id) {
-//								hasUnit = true;
-//								break;
-//							}
-//						}
-//						if(!hasUnit) {
-//							Unit u = new Unit(t_id, controlledPlayer.getId());
-//							gamemap.getTerritories().get(t_id).setOccupyingUnit(u);
-//							controlledPlayer.addUnit(u);
-//							controlledPlayer.subResource(1, 1);
-//						}
-//						//debug
-//						else {
-//							System.out.println("Cannot deploy unit");
-//						}
-//					}
-//					else if(deployType == 2 && controlledPlayer.getResources()[2] > 0 && gamemap.getTerritories().get(t_id).getOwner() == controlledPlayer.getId()){
-//					    gamemap.getTerritories().get(t_id).addEconomicPoints(1);
-//					    controlledPlayer.subResource(2,1);
-//	                }
-//				}
-//			}
-//			else if( button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-//				System.out.println("Right Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
-//				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
-//				if(t_id != -1) {
-//					if(selectedUnit == null) {
-//						for (int i = 0; i < controlledPlayer.getUnits().size(); i++) {
-//	//						System.out.println(controlledPlayer.getUnits().get(i).getLocation() +  " " + t_id);
-//							if(controlledPlayer.getUnits().get(i).getLocation() == t_id) {
-//								selectedUnit = controlledPlayer.getUnits().get(i);
-//							}
-//						}
-//					}
-//					//players move units
-//					else if(selectedUnit != null) {
-//						if(t_id != selectedUnit.getLocation() && checkAdjacent(selectedUnit.getLocation(),t_id)) {
-//							boolean supporting = shiftPressed ? true : false;
-//							for (Unit u : controlledPlayer.getUnits()) {
-//								if(u != selectedUnit && u.getTarget() == t_id && u.isSupporting() == false) {
-//									supporting = true;
-//								}
-//							}
-//							selectedUnit.setTarget(t_id);
-//							if(supporting) {
-//								selectedUnit.setSupportMove(true);
-//							}
-//							else {
-//								selectedUnit.setSupportMove(false);
-//							}
-//						}
-//						else if(t_id == selectedUnit.getLocation()) {
-//							selectedUnit.setTarget(-1);
-//							selectedUnit.setSupportMove(false);
-//						}
-//						selectedUnit = null;
-//					}
-//				}
-//				else {
-//					selectedUnit = null;
-//				}
-//			}
-//			else if( button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
-//				if(selectedUnit != null) {
-//					selectedUnit = null;
-//				}
-//				int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
-//				if(t_id != -1) {
-//					//change territory ownership
-//					if(shiftPressed) {
-//						System.out.println("Territory Clicked: " + t_id);
-//						gamemap.getTerritories().get(t_id).setOwner((gamemap.getTerritories().get(t_id).getOwner() + 1) % players.size());
-//					}
-//					//get territory info
-//					else {
-//						System.out.println("Territory Clicked: " + t_id);
-//						System.out.println("Owner: " + gamemap.getTerritories().get(t_id).owner_id);
-//						System.out.println("Influenced By: " + gamemap.getTerritories().get(t_id).influenced_by);
-//						int[] diplo = gamemap.getTerritories().get(t_id).getDiplomaticPoints();
-//						for (int p = 1; p < players.size(); p++) {
-//							System.out.println("Player " + (p) + " : "+ diplo[p] + " DP");
-//						}
-//					}
-//				}
-//			}
-//		}
+		if(gameState == 1) {
+			if ( button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+				client.sendTCP(new MouseClick(button, action, new double[]{xpos.get(0), xpos.get(1), xpos.get(2)}, new double[]{ypos.get(0), ypos.get(1), ypos.get(2)}, myPlayerId));
+			}
+		}
 	}
 
 	//key presses
@@ -404,6 +307,10 @@ public class GameClient extends Listener {
 	
 	public static void main(String[] args) throws IOException {
 		new GameClient().run();
+	}
+	
+	public int getPlayerId() {
+		return myPlayerId;
 	}
 
 }

@@ -143,7 +143,7 @@ public class GameEngine {
 			xpos.put(2, xpos.get(0) - windowXOffset);
 			ypos.put(2, ypos.get(0) - windowYOffset);
 			if(isHost) {
-				game.onMouseClick(button, action, xpos, ypos);
+				game.onMouseClick(button, action, xpos, ypos, game.getPlayerId());
 			}
 			else {
 				client.onMouseClick(button, action, xpos, ypos);
