@@ -9,13 +9,17 @@ import java.util.ArrayList;
 
 import com.esotericsoftware.kryonet.*;
 
+import packets.PlayerInfo;
+import packets.TurnStatus;
+import packets.UnitInfo;
+import packets.UnitPositions;
 import rendering.GameTextures;
 import rendering.Shader;
 import rendering.Texture;
 
 public class Game extends Listener {
 	
-	GameEngine engine = new GameEngine(this);
+	GameEngine engine = new GameEngine(this, "ResourceCurse [Development] - Server");
 	
 	Shader shader;
 	Map gamemap;
@@ -38,18 +42,19 @@ public class Game extends Listener {
 	Unit selectedUnit = null;
 	
 	int gameState = 0; //0 = waiting for players, 1 = started, 2 = won, 3 = lost
-	boolean nextTurn = true;
 	int turnNum = 1;
+	
+	
+	boolean[] nextTurnArray = {true, true, true, true, true};
+	
 	int deployType = 0;
 
 	boolean shiftPressed = false;
 	
 	ArrayList<Player> players = new ArrayList<Player>();
+	ArrayList<Unit> allUnits = new ArrayList<Unit>();
 	Player neutral = new Player(0, 0.8f, 0.8f, 0.8f);
 	Player controlledPlayer = new Player(1, 0.5f, 0, 0);
-
-	int tick = 1;
-	int tick_cycle = 100;
 	
 	int[][] combatArray;
 	
@@ -60,8 +65,13 @@ public class Game extends Listener {
 		//Register packets
 		server.getKryo().register(java.util.ArrayList.class);
 		server.getKryo().register(double[].class);
+		server.getKryo().register(float[].class);
 		server.getKryo().register(int[].class);
 		server.getKryo().register(int[][].class);
+		server.getKryo().register(UnitInfo.class);
+		server.getKryo().register(UnitPositions.class);
+		server.getKryo().register(TurnStatus.class);
+		server.getKryo().register(PlayerInfo.class);
 		server.bind(tcpPort, udpPort);
 		
 		//Start server
@@ -89,8 +99,6 @@ public class Game extends Listener {
 		//players id start at 1
 		players.add(neutral);
 		players.add(controlledPlayer);
-		
-		combatArray = new int[gamemap.getTerritories().size()][players.size()];
 				
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
@@ -123,16 +131,33 @@ public class Game extends Listener {
 	
 	public void updateClients(){
 		
+		server.sendToAllTCP(new UnitPositions(allUnits));
+		server.sendToAllTCP(new TurnStatus(true));
+		for (int i = 1; i < players.size(); i++) {
+			nextTurnArray[i] = false;
+		}
 	}
 	
 	@Override
 	public void received(Connection c, Object obj) {
-		
+		if(obj instanceof TurnStatus){
+			TurnStatus packet = (TurnStatus) obj;
+			nextTurnArray[c.getID()+1] = packet.getStatus();
+		}
 	}
 	
 	@Override
 	public void disconnected(Connection c){
 		
+	}
+	
+	public void startGame() {
+		gameState = 1;
+		combatArray = new int[gamemap.getTerritories().size()][players.size()];
+		for (int i = 0; i < players.size(); i++) {
+			server.sendToAllTCP(new PlayerInfo(0, colors[i], i));
+		}
+		server.sendToAllTCP(new TurnStatus(true));
 	}
 	
 	public void gameLoop() {
@@ -160,38 +185,34 @@ public class Game extends Listener {
 			
 			//draw units
 			gametextures.loadTexture(0);
-			for (Player p : players) {
-				float[] color = p.getColor();
+			for (Unit u : allUnits) {
+				float[] color = players.get(u.getOwnerId()).getColor();
+				int center[] = gamemap.getTerritories().get(u.getLocation()).center;
+				if(u.getTarget() != -1) {
+					if(u.isSupporting()) {
+						gametextures.loadTexture(3);
+					}
+					else {
+						gametextures.loadTexture(2);
+					}
+					int targetcenter[] = gamemap.getTerritories().get(u.getTarget()).center;
+					double invslope = -1/(((double) targetcenter[1] - center[1]) / ((double) targetcenter[0] - center[0]));
+					double magnitude = Math.sqrt(Math.pow(invslope, 2) + 1);
+					double rise = invslope / magnitude;
+					double run = 1 / magnitude;
+					shader.setUniform("red", 0f);
+					shader.setUniform("green", 0f);
+					shader.setUniform("blue", 0f);
+					engine.render(center[0] + 40*run, center[1] + 40*rise, center[0] - 40*run, center[1] - 40*rise,
+							targetcenter[0] - 40*run, targetcenter[1] - 40*rise, targetcenter[0] + 40*run, targetcenter[1] + 40*rise);
+					gametextures.loadTexture(0);
+				}
 				shader.setUniform("red", color[0]);
 				shader.setUniform("green", color[1]);
 				shader.setUniform("blue", color[2]);
-				for (Unit u : p.getUnits()) {
-					int center[] = gamemap.getTerritories().get(u.getLocation()).center;
-					if(u.getTarget() != -1) {
-						if(u.isSupporting()) {
-							gametextures.loadTexture(3);
-						}
-						else {
-							gametextures.loadTexture(2);
-						}
-						int targetcenter[] = gamemap.getTerritories().get(u.getTarget()).center;
-						double invslope = -1/(((double) targetcenter[1] - center[1]) / ((double) targetcenter[0] - center[0]));
-						double magnitude = Math.sqrt(Math.pow(invslope, 2) + 1);
-						double rise = invslope / magnitude;
-						double run = 1 / magnitude;
-						shader.setUniform("red", 0f);
-						shader.setUniform("green", 0f);
-						shader.setUniform("blue", 0f);
-						engine.render(center[0] + 40*run, center[1] + 40*rise, center[0] - 40*run, center[1] - 40*rise,
-								targetcenter[0] - 40*run, targetcenter[1] - 40*rise, targetcenter[0] + 40*run, targetcenter[1] + 40*rise);
-						gametextures.loadTexture(0);
-						shader.setUniform("red", color[0]);
-						shader.setUniform("green", color[1]);
-						shader.setUniform("blue", color[2]);
-					}
-					engine.render(center[0] - 40, center[1] - 40, center[0] + 40, center[1] + 40);
-				}
+				engine.render(center[0] - 40, center[1] - 40, center[0] + 40, center[1] + 40);
 			}
+
 			if(selectedUnit != null) {
 	//			float[] color = controlledPlayer.getColor();
 	//			shader.setUniform("red", color[0]);
@@ -203,7 +224,7 @@ public class Game extends Listener {
 			}
 			
 			//give players resources
-			if(nextTurn == true) {
+			if(checkNextTurn()) {
 				moveUnits();
 				System.out.println("------------------[Turn " + turnNum + "]--------------------");
 				for (int i = 1; i < players.size(); i++) {
@@ -220,12 +241,10 @@ public class Game extends Listener {
 					System.out.println("Player " + p.getId() + ": " + p.checkResource(0) + " Diplomatic  " + p.checkResource(1) + " Military  " + p.checkResource(2) + " Economic");
 				}
 				System.out.println("----------------------------------------------");
-				nextTurn = false;
 				turnNum++;
+				updateClients();
 			}
-	
-			tick = (tick + 1) % tick_cycle;
-			
+				
 			engine.moveCamera();
 		}
 		//display win message
@@ -248,7 +267,6 @@ public class Game extends Listener {
 		for (Player p : players) {
 			for (Unit u : p.getUnits()) {
 				u.setMoveStatus(0);
-				u.setVictorious(false);
 
 				if(u.getTarget() == -1) {
 					combatArray[u.getLocation()][p.getId()]++;
@@ -303,7 +321,6 @@ public class Game extends Listener {
 						gamemap.getTerritories().get(u.getLocation()).setOccupyingUnit(null);
 						gamemap.getTerritories().get(u.getTarget()).setOccupyingUnit(u);
 						u.setLocation(u.getTarget());
-						u.setVictorious(true);
 					}
 					else if(u.getMoveStatus() == 2) {
 						unitsPending = true;
@@ -365,6 +382,7 @@ public class Game extends Listener {
 						if(!hasUnit) {
 							Unit u = new Unit(t_id, controlledPlayer.getId());
 							gamemap.getTerritories().get(t_id).setOccupyingUnit(u);
+							allUnits.add(u);
 							controlledPlayer.addUnit(u);
 							controlledPlayer.subResource(1, 1);
 						}
@@ -449,16 +467,14 @@ public class Game extends Listener {
 	public void onKeyPressed(long window, int key, int scancode, int action, int mods) {
 		if(gameState == 0) {
 			if(key == GLFW_KEY_ENTER && action == GLFW_RELEASE) {
-				gameState = 1;
-				
-				//setup game here
+				startGame();
 			}
 		}
 		else {
 			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
 				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
 			if ( key == GLFW_KEY_ENTER && action == GLFW_RELEASE )
-				nextTurn = true;
+				nextTurnArray[controlledPlayer.getId()] = true;
 			if ( key == GLFW_KEY_0 && action == GLFW_RELEASE ) {
 				deployType = 0;
 				System.out.println("Deploying Diplomatic Points");
@@ -477,6 +493,15 @@ public class Game extends Listener {
 				shiftPressed = false;
 		}
 		
+	}
+	
+	public boolean checkNextTurn() {
+		for (int i = 1; i < players.size() + 1; i++) {
+			if(nextTurnArray[i] == false) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public static void main(String[] args) throws IOException {
