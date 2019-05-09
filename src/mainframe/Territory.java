@@ -1,6 +1,4 @@
 package mainframe;
-import java.awt.Color;
-import java.util.ArrayList;
 
 import  java.lang.Math;
 
