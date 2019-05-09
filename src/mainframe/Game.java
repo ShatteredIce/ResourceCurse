@@ -9,7 +9,9 @@ import java.util.ArrayList;
 
 import com.esotericsoftware.kryonet.*;
 
+import packets.MapInfo;
 import packets.PlayerInfo;
+import packets.TerritoryInfo;
 import packets.TurnStatus;
 import packets.UnitInfo;
 import packets.UnitPositions;
@@ -72,6 +74,8 @@ public class Game extends Listener {
 		server.getKryo().register(UnitPositions.class);
 		server.getKryo().register(TurnStatus.class);
 		server.getKryo().register(PlayerInfo.class);
+		server.getKryo().register(MapInfo.class);
+		server.getKryo().register(TerritoryInfo.class);
 		server.bind(tcpPort, udpPort);
 		
 		//Start server
@@ -132,6 +136,7 @@ public class Game extends Listener {
 	public void updateClients(){
 		
 		server.sendToAllTCP(new UnitPositions(allUnits));
+		server.sendToAllTCP(new MapInfo(gamemap.getTerritories()));
 		server.sendToAllTCP(new TurnStatus(true));
 		for (int i = 1; i < players.size(); i++) {
 			nextTurnArray[i] = false;
@@ -153,11 +158,34 @@ public class Game extends Listener {
 	
 	public void startGame() {
 		gameState = 1;
+		
+		//one player = debugging only
+		if(players.size()-1 == 1) {
+			gamemap.getTerritories().get(0).setOwner(1);
+			gamemap.getTerritories().get(2).setOwner(1);
+		}
+		//two players
+		else if(players.size()-1 == 2) {
+			gamemap.getTerritories().get(0).setOwner(1);
+			gamemap.getTerritories().get(2).setOwner(1);
+			gamemap.getTerritories().get(3).setOwner(2);
+		}
+		//three players
+		else if(players.size()-1 == 3) {
+			gamemap.getTerritories().get(0).setOwner(1);
+			gamemap.getTerritories().get(2).setOwner(1);
+			gamemap.getTerritories().get(3).setOwner(2);
+			gamemap.getTerritories().get(4).setOwner(3);
+		}
+		//four players
+		else if(players.size()-1 == 4) {
+			
+		}
+		
 		combatArray = new int[gamemap.getTerritories().size()][players.size()];
 		for (int i = 0; i < players.size(); i++) {
 			server.sendToAllTCP(new PlayerInfo(0, colors[i], i));
 		}
-		server.sendToAllTCP(new TurnStatus(true));
 	}
 	
 	public void gameLoop() {

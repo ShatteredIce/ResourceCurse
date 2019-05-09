@@ -10,7 +10,9 @@ import java.util.Scanner;
 
 import com.esotericsoftware.kryonet.*;
 
+import packets.MapInfo;
 import packets.PlayerInfo;
+import packets.TerritoryInfo;
 import packets.TurnStatus;
 import packets.UnitInfo;
 import packets.UnitPositions;
@@ -73,6 +75,8 @@ public class GameClient extends Listener {
 		client.getKryo().register(UnitPositions.class);
 		client.getKryo().register(TurnStatus.class);
 		client.getKryo().register(PlayerInfo.class);
+		client.getKryo().register(MapInfo.class);
+		client.getKryo().register(TerritoryInfo.class);
 		//start the client
 		client.start();
 		
@@ -152,6 +156,7 @@ public class GameClient extends Listener {
 			if(gameState == 0 && packet.getStatus()) {
 				gameState = 1;
 			}
+			nextTurn = true;
 		}
 		else if(obj instanceof UnitPositions){
 			UnitPositions packet = (UnitPositions) obj;
@@ -160,6 +165,12 @@ public class GameClient extends Listener {
 		else if(obj instanceof PlayerInfo){
 			PlayerInfo packet = (PlayerInfo) obj;
 			players.add(packet);
+		}
+		else if(obj instanceof MapInfo){
+			ArrayList<TerritoryInfo> territoryData = ((MapInfo) obj).getTerritories();
+			for (int i = 0; i < territoryData.size(); i++) {
+				gamemap.getTerritories().get(territoryData.get(i).getId()).setOwner(territoryData.get(i).getOwnerId());
+			}
 		}
 	}
 	
