@@ -107,6 +107,8 @@ public class Territory {
 	public Unit getOccupyingUnit() {
 		return occupying;
 	}
+
+	public int getInfluenced_by(){return influenced_by;}
 	
 
 }

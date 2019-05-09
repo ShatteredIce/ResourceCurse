@@ -8,8 +8,9 @@ import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import com.esotericsoftware.kryonet.*;
-
+import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
 import packets.PlayerInfo;
 import packets.TurnStatus;
 import packets.UnitInfo;

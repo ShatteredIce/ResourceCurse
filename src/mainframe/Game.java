@@ -9,6 +9,9 @@ import java.util.ArrayList;
 
 import com.esotericsoftware.kryonet.*;
 
+import com.esotericsoftware.kryonet.Listener;
+import com.esotericsoftware.kryonet.Server;
+import com.esotericsoftware.kryonet.Connection;
 import packets.PlayerInfo;
 import packets.TurnStatus;
 import packets.UnitInfo;
@@ -176,10 +179,11 @@ public class Game extends Listener {
 			//draw territories
 			for (int i = 0; i < gamemap.getTerritories().size(); i++) {
 				gamemap.getTerritoryTextures().get(i).bind(0);
-				float[] color = players.get(gamemap.getTerritories().get(i).getOwner()).getColor();
-				shader.setUniform("red", color[0]);
-				shader.setUniform("green", color[1]);
-				shader.setUniform("blue", color[2]);
+				float[] color = players.get(gamemap.getTerritories().get(i).getOwner() + gamemap.getTerritories().get(i).getInfluenced_by()).getColor();
+				float influenced = gamemap.getTerritories().get(i).getInfluenced_by() != 0 ? (float)1.5 : 1;
+				shader.setUniform("red", color[0]*influenced);
+				shader.setUniform("green", color[1]*influenced);
+				shader.setUniform("blue", color[2]*influenced);
 				engine.render(0, 0, 840, 640);
 			}
 			
