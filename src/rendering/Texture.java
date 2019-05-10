@@ -1,5 +1,6 @@
 package rendering;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import org.lwjgl.BufferUtils;
@@ -12,13 +13,17 @@ public class Texture {
 	private int width;
 	private int height;
 	
-	public Texture(String filename){
+	public Texture(String filename) {
 		IntBuffer width = BufferUtils.createIntBuffer(1);
 		IntBuffer height = BufferUtils.createIntBuffer(1);
 		IntBuffer comp = BufferUtils.createIntBuffer(1);
 		
 		ByteBuffer data = stbi_load("./res/"+filename,width,height,comp,4);
 
+		if (data == null) {
+			System.out.println(stbi_failure_reason());
+		}
+		
 		id = glGenTextures();
 		this.width = width.get();
 		this.height = height.get();

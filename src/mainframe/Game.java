@@ -52,7 +52,7 @@ public class Game {
 		engine.setup();
 		
 		shader = new Shader("shader");
-		gamemap = new TestMap();
+		gamemap = new RealMap();
 		unittex = new Texture("unit.png");
 		selectedunittex = new Texture("selectedunit.png");
 		movearrowtex = new Texture("movearrow.png");
@@ -298,6 +298,7 @@ public class Game {
 						gamemap.getTerritories().get(t_id).setOccupyingUnit(u);
 						controlledPlayer.addUnit(u);
 						controlledPlayer.subResource(1, 1);
+						System.out.println("Deployed");
 					}
 					//debug
 					else {

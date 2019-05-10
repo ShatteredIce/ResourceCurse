@@ -25,11 +25,11 @@ public class GameEngine {
 	// The window handle
 	private long window;
 	
-	final int WINDOW_WIDTH = 840;
+	final int WINDOW_WIDTH = 1260;
 	final int WINDOW_HEIGHT = 640;
 	
-	int worldWidth = 840;
-	int worldHeight = 640;
+	int worldWidth = 8240;
+	int worldHeight = 4328;
 	
 	//Setup for variables for game frame
 	

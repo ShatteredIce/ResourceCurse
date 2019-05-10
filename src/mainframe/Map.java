@@ -39,6 +39,7 @@ public abstract class Map {
 	
 	//load an image from file path
 	public BufferedImage loadImage(String path) {
+		System.out.println(path);
 		File in = new File(path);
 		BufferedImage im;
 		try {
