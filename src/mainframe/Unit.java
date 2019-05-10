@@ -6,6 +6,7 @@ public class Unit {
     private int ownerId = -1;
     boolean supportMove = false;
     int moveStatus = 0; //0 = false, 1 = true, 2 = pending
+    int destroyedTerritoryIndex= -1;
 
     public Unit(int newlocation, int newid){
         location = newlocation;
@@ -42,6 +43,14 @@ public class Unit {
     
     public int getMoveStatus() {
     	return moveStatus;
+    }
+    
+    public void setDestroyedTerritoryIndex(int i) {
+    	destroyedTerritoryIndex = i;
+    }
+    
+    public int getDestroyedTerritoryIndex() {
+    	return destroyedTerritoryIndex;
     }
     
     public int getOwnerId() {

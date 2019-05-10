@@ -52,7 +52,7 @@ public class GameClient extends Listener {
 	
 	int myPlayerId = -1;
 	
-	Unit selectedUnit = null;
+	UnitInfo selectedUnit = null;
 	
 	int gameState = 0; //0 = waiting for players, 1 = started, 2 = won, 3 = lost
 	int turnNum = 1;
@@ -239,10 +239,10 @@ public class GameClient extends Listener {
 				engine.render(center[0] - 40, center[1] - 40, center[0] + 40, center[1] + 40);
 			}
 			if(selectedUnit != null) {
-	//			float[] color = controlledPlayer.getColor();
-	//			shader.setUniform("red", color[0]);
-	//			shader.setUniform("green", color[1]);
-	//			shader.setUniform("blue", color[2]);
+				float[] color = players.get(selectedUnit.getOwnerId()).getColor();
+				shader.setUniform("red", color[0]);
+				shader.setUniform("green", color[1]);
+				shader.setUniform("blue", color[2]);
 				gametextures.loadTexture(1);
 				int center[] = gamemap.getTerritories().get(selectedUnit.getLocation()).center;
 				engine.render(center[0] - 40, center[1] - 40, center[0] + 40, center[1] + 40);
@@ -272,7 +272,22 @@ public class GameClient extends Listener {
 	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos) {
 		if(gameState == 1) {
 			if ( button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-				client.sendTCP(new MouseClick(button, action, new double[]{xpos.get(0), xpos.get(1), xpos.get(2)}, new double[]{ypos.get(0), ypos.get(1), ypos.get(2)}, myPlayerId));
+				if(selectedUnit != null) {
+					selectedUnit = null;
+				}
+				System.out.println("Left Mouse Button: " + xpos.get(1) + " " + ypos.get(1));
+				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
+				if(t_id != -1) {
+//					//deploy diplomatic control points
+//					if(deployType == 0 && controlledPlayer.getResources()[0] > 0) {
+//						gamemap.getTerritories().get(t_id).addDiplomaticPoints(1, controlledPlayer.getId());
+//						controlledPlayer.subResource(0, 1);
+//					}
+					//deploy mil units on controlled territories only
+					if(deployType == 1) {
+						client.sendTCP(new MouseClick(myPlayerId, 1, t_id));
+					}
+				}
 			}
 		}
 	}
