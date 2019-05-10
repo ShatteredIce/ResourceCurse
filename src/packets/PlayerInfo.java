@@ -10,8 +10,6 @@ public class PlayerInfo {
 	private float[] color;
 	private int id;
 	
-	private ArrayList<UnitInfo> units;
-
 	
 	public PlayerInfo(){
 		
@@ -21,7 +19,6 @@ public class PlayerInfo {
 		action = newaction;
 		color = newcolor;
 		id = newid;
-		units = new ArrayList<>();
 	}
 
 	public int getAction() {
@@ -34,14 +31,6 @@ public class PlayerInfo {
 
 	public int getId() {
 		return id;
-	}
-	
-	public void setUnits(ArrayList<UnitInfo> myunits) {
-		units = myunits;
-	}
-	
-	public ArrayList<UnitInfo> getUnits(){
-		return units;
 	}
 
 }

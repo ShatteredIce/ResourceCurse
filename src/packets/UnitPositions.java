@@ -13,7 +13,7 @@ public class UnitPositions {
 	public UnitPositions(ArrayList<Unit> units){
 		for (int i = 0; i < units.size(); i++) {
 			Unit current = units.get(i);
-			unitdata.add(new UnitInfo(current.getOwnerId(), current.getLocation()));
+			unitdata.add(new UnitInfo(current.getOwnerId(), current.getLocation(), current.getTarget(), current.isSupporting()));
 		}
 	}
 

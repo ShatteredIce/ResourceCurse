@@ -16,6 +16,13 @@ public class UnitInfo {
 		location = newlocation;
 	}
 	
+	public UnitInfo(int newownerid, int newlocation, int newtarget, boolean supporting){
+		ownerId = newownerid;
+		location = newlocation;
+		target_location = newtarget;
+		supportMove = supporting;
+	}
+	
 	
 	public int getOwnerId(){
 		return ownerId;

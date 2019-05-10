@@ -186,6 +186,15 @@ public class GameClient extends Listener {
 		
 	}
 	
+	public void sendTurnOrders() {
+		for (UnitInfo u : units) {
+			if(u.getOwnerId() == myPlayerId && u.getTarget() != -1) {
+				client.sendTCP(new UnitInfo(u.getOwnerId(), u.getLocation(), u.getTarget(), u.isSupporting()));
+			}
+		}
+		client.sendTCP(new TurnStatus(true));
+	}
+	
 	public void gameLoop() {
 			
 		shader.bind();
@@ -214,7 +223,7 @@ public class GameClient extends Listener {
 			for (UnitInfo u : units) {
 				float[] color = players.get(u.getOwnerId()).getColor();
 				int center[] = gamemap.getTerritories().get(u.getLocation()).center;
-				if(u.getTarget() != -1) {
+				if(u.getOwnerId() == myPlayerId && u.getTarget() != -1) {
 					if(u.isSupporting()) {
 						gametextures.loadTexture(3);
 					}
@@ -268,6 +277,15 @@ public class GameClient extends Listener {
 		}
 	}
 	
+	public boolean checkAdjacent(int location, int target){
+	    for(int adj : gamemap.getTerritories().get(target).adjacent){
+	        if(location == adj){
+	            return true;
+            }
+        }
+        return false;
+    }
+	
 	//mouse clicks
 	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos) {
 		if(gameState == 1) {
@@ -289,18 +307,56 @@ public class GameClient extends Listener {
 					}
 				}
 			}
+			else if( button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+				System.out.println("Right Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
+				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
+				if(t_id != -1) {
+					if(selectedUnit == null) {
+						for (UnitInfo u : units) {
+							//select unit
+							if(u.getOwnerId() == myPlayerId && u.getLocation() == t_id) {
+								selectedUnit = u;
+							}
+						}
+					}
+					//players move units
+					else if(selectedUnit != null) {
+						if(t_id != selectedUnit.getLocation() && checkAdjacent(selectedUnit.getLocation(),t_id)) {
+							boolean supporting = shiftPressed ? true : false;
+							for (UnitInfo u : units) {
+								if(u.getOwnerId() == myPlayerId && u != selectedUnit && u.getTarget() == t_id && u.isSupporting() == false) {
+									supporting = true;
+								}
+							}
+							selectedUnit.setTarget(t_id);
+							if(supporting) {
+								selectedUnit.setSupportMove(true);
+							}
+							else {
+								selectedUnit.setSupportMove(false);
+							}
+						}
+						else if(t_id == selectedUnit.getLocation()) {
+							selectedUnit.setTarget(-1);
+							selectedUnit.setSupportMove(false);
+						}
+						selectedUnit = null;
+					}
+				}
+				else {
+					selectedUnit = null;
+				}
+			}
 		}
 	}
 
 	//key presses
 	public void onKeyPressed(long window, int key, int scancode, int action, int mods) {
-			if(key == GLFW_KEY_ENTER && action == GLFW_RELEASE) {
-				client.sendTCP(new TurnStatus(true));
-			}
 			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
 				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
-			if ( key == GLFW_KEY_ENTER && action == GLFW_RELEASE )
-//				nextTurnArray[controlledPlayer.getId()] = true;
+			if(key == GLFW_KEY_ENTER && action == GLFW_RELEASE) {
+				sendTurnOrders();
+			}
 			if ( key == GLFW_KEY_0 && action == GLFW_RELEASE ) {
 				deployType = 0;
 				System.out.println("Deploying Diplomatic Points");

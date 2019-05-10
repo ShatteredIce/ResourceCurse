@@ -161,6 +161,15 @@ public class Game extends Listener {
 				buyUnit(packet.getPlayerId(), packet.getTerritoryId());
 			}
 		}
+		else if(obj instanceof UnitInfo) {
+			UnitInfo packet = (UnitInfo) obj;
+			for (Unit u : allUnits) {
+				if(u.getOwnerId() == packet.getOwnerId() && u.getLocation() == packet.getLocation()) {
+					u.setTarget(packet.getTarget());
+					u.setSupportMove(packet.isSupporting());
+				}
+			}
+		}
 	}
 	
 	@Override
@@ -229,7 +238,7 @@ public class Game extends Listener {
 			for (Unit u : allUnits) {
 				float[] color = players.get(u.getOwnerId()).getColor();
 				int center[] = gamemap.getTerritories().get(u.getLocation()).center;
-				if(u.getTarget() != -1) {
+				if(u.getOwnerId() == myPlayerId && u.getTarget() != -1) {
 					if(u.isSupporting()) {
 						gametextures.loadTexture(3);
 					}
@@ -410,6 +419,7 @@ public class Game extends Listener {
 		for (int i = 0; i < allUnits.size(); i++) {
 			Unit u = allUnits.get(i);
 			if(u.getDestroyedTerritoryIndex() != -1 && u.getDestroyedTerritoryIndex() == u.getLocation()) {
+				System.out.println(u.getOwnerId() + "'s unit destroyed at: " + u.getLocation());
 				players.get(u.getOwnerId()).getUnits().remove(u);
 				allUnits.remove(u);
 				i--;
@@ -466,10 +476,10 @@ public class Game extends Listener {
 				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 				if(t_id != -1) {
 					if(selectedUnit == null) {
-						for (int i = 0; i < controlledPlayer.getUnits().size(); i++) {
-	//						System.out.println(controlledPlayer.getUnits().get(i).getLocation() +  " " + t_id);
-							if(controlledPlayer.getUnits().get(i).getLocation() == t_id) {
-								selectedUnit = controlledPlayer.getUnits().get(i);
+						for (Unit u : allUnits) {
+							//select unit
+							if(u.getOwnerId() == myPlayerId && u.getLocation() == t_id) {
+								selectedUnit = u;
 							}
 						}
 					}
