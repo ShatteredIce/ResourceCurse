@@ -93,7 +93,7 @@ public class Game {
 		shader.setUniform("blue", 0f);
 
 		gamemap.bindTexture();
-		engine.render(0, 0, 840, 640);
+		engine.render(0, 0, engine.worldWidth, engine.worldHeight);
 		
 		//draw territories
 		for (int i = 0; i < gamemap.getTerritories().size(); i++) {
@@ -102,7 +102,7 @@ public class Game {
 			shader.setUniform("red", color[0]);
 			shader.setUniform("green", color[1]);
 			shader.setUniform("blue", color[2]);
-			engine.render(0, 0, 840, 640);
+			engine.render(0, 0, engine.worldWidth, engine.worldHeight);
 		}
 		
 		//draw units
@@ -356,7 +356,8 @@ public class Game {
 			if(selectedUnit != null) {
 				selectedUnit = null;
 			}
-			int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+			int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
+//			System.out.println(t_id);
 			if(t_id != -1) {
 				//change territory ownership
 				if(shiftPressed) {

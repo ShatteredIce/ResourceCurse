@@ -42,7 +42,7 @@ public class Territory {
 		if(true_color[0] == red && true_color[1] == green && true_color[2] == blue) {
 			return true;
 		}
-		System.out.println(red+","+green+","+blue);
+//		System.out.println(red+","+green+","+blue);
 		return false;
 	}
 	
