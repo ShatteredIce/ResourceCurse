@@ -21,7 +21,7 @@ public class RealMap extends Map {
 		territories.add(new Territory(7, 0, 115, 0, 0, 810, 590, 0, 0,new int[]{2,3,6,8,10,11,12,14,15,16}));
 		territories.add(new Territory(8, 0, 95, 0, 0, 710, 740, 0, 0,new int[]{7,11}));
 		territories.add(new Territory(9, 0, 75, 0, 0, 860, 245, 0, 0,new int[]{6,10}));
-/*		territories.add(new Territory(10, 0, 55, 0, 0, 945, 400, 0, 0,new int[]{6,7,9,13,14}));
+		territories.add(new Territory(10, 0, 55, 0, 0, 945, 400, 0, 0,new int[]{6,7,9,13,14}));
 		territories.add(new Territory(11, 0, 35, 0, 0, 820, 750, 0, 0,new int[]{7,8,12}));
 		territories.add(new Territory(12, 0, 15, 0, 0, 920, 755, 0, 0,new int[]{7,11,16}));
 		territories.add(new Territory(13, 0, 0, 255, 0, 1080, 230, 0, 0,new int[]{10,14,18}));
@@ -47,7 +47,7 @@ public class RealMap extends Map {
 		territories.add(new Territory(33, 0, 0, 0, 115, 1540, 665, 0, 0,new int[]{20,32,34,35}));
 		territories.add(new Territory(34, 0, 0, 0, 95, 1515, 725, 0, 0,new int[]{20,33,35}));
 		territories.add(new Territory(35, 0, 0, 0, 75, 1695, 695, 0, 0,new int[]{32,33,34}));
-*/		
+		
 		
 		territory_textures.add(new Texture("territory1.PNG"));
 		territory_textures.add(new Texture("territory2.PNG"));
@@ -59,7 +59,7 @@ public class RealMap extends Map {
 		territory_textures.add(new Texture("territory8.PNG"));
 		territory_textures.add(new Texture("territory9.PNG"));
 		territory_textures.add(new Texture("territory10.PNG"));
-	/*	territory_textures.add(new Texture("territory11.PNG"));
+		territory_textures.add(new Texture("territory11.PNG"));
 		territory_textures.add(new Texture("territory12.PNG"));
 		territory_textures.add(new Texture("territory13.PNG"));
 		territory_textures.add(new Texture("territory14.PNG"));
@@ -85,7 +85,7 @@ public class RealMap extends Map {
 		territory_textures.add(new Texture("territory34.PNG"));
 		territory_textures.add(new Texture("territory35.PNG"));
 		territory_textures.add(new Texture("territory36.PNG"));
-		*/
+		
 	}
 
 }
