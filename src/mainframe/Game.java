@@ -185,25 +185,51 @@ public class Game extends Listener {
 		
 		//one player = debugging only
 		if(players.size()-1 == 1) {
+			//double p1rand = Math.random();
+			//p1rand = p1rand*10;
 			gamemap.getTerritories().get(0).setOwner(1);
-			gamemap.getTerritories().get(2).setOwner(1);
+			//double p2rand = Math.random();
+			//p2rand = p2rand*10 +20;
+			gamemap.getTerritories().get(1).setOwner(1);
 		}
 		//two players
 		else if(players.size()-1 == 2) {
-			gamemap.getTerritories().get(0).setOwner(1);
-			gamemap.getTerritories().get(2).setOwner(1);
-			gamemap.getTerritories().get(3).setOwner(2);
+			double p1rand = Math.random();
+			p1rand = p1rand*10;
+			gamemap.getTerritories().get((int)p1rand).setOwner(1);
+			double p2rand = Math.random();
+			p2rand = p2rand*10 +20;
+			//gamemap.getTerritories().get(2).setOwner(1);
+			gamemap.getTerritories().get((int)p2rand).setOwner(2);
 		}
 		//three players
 		else if(players.size()-1 == 3) {
-			gamemap.getTerritories().get(0).setOwner(1);
-			gamemap.getTerritories().get(2).setOwner(1);
-			gamemap.getTerritories().get(3).setOwner(2);
-			gamemap.getTerritories().get(4).setOwner(3);
+			double p1rand = Math.random();
+			p1rand = p1rand*10;
+			//gamemap.getTerritories().get(0).setOwner(1);
+			gamemap.getTerritories().get((int)p1rand).setOwner(1);
+			double p2rand = Math.random();
+			p2rand = p2rand*10+10;
+			gamemap.getTerritories().get((int)p2rand).setOwner(2);
+			double p3rand = Math.random();
+			p2rand = p3rand*10+20;
+			gamemap.getTerritories().get((int)p3rand).setOwner(3);
 		}
 		//four players
 		else if(players.size()-1 == 4) {
-			
+			double p1rand = Math.random();
+			p1rand = p1rand*10;
+			//gamemap.getTerritories().get(0).setOwner(1);
+			gamemap.getTerritories().get((int)p1rand).setOwner(1);
+			double p2rand = Math.random();
+			p2rand = p2rand*10+7;
+			gamemap.getTerritories().get((int)p2rand).setOwner(2);
+			double p3rand = Math.random();
+			p2rand = p3rand*10+14;
+			gamemap.getTerritories().get((int)p3rand).setOwner(3);
+			double p4rand = Math.random();
+			p2rand = p4rand*10+21;
+			gamemap.getTerritories().get((int)p4rand).setOwner(4);
 		}
 		
 		combatArray = new int[gamemap.getTerritories().size()][players.size()];
