@@ -323,8 +323,16 @@ public class GameClient extends Listener {
 				if(t_id != -1) {
 //					//deploy diplomatic control points
 					if(deployType == 0 && myResources[0] > 0) {
-						diploDeployments[t_id]++;
-						myResources[0]--;
+						if(gamemap.territories.get(t_id).getOccupyingUnit() != null && gamemap.territories.get(t_id).getOccupyingUnit().getOwnerId() != myPlayerId) {
+							System.out.println("Territory occupied!");
+						}
+						else if(gamemap.territories.get(t_id).getOwner() != -1) {
+							System.out.println("Territory controlled!");
+						}
+						else {
+							diploDeployments[t_id]++;
+							myResources[0]--;
+						}
 					}
 					//deploy mil units on controlled territories only
 					if(deployType == 1) {
@@ -376,7 +384,7 @@ public class GameClient extends Listener {
 				if(selectedUnit != null) {
 					selectedUnit = null;
 				}
-				int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 				if(t_id != -1) {
 					//change territory ownership
 					if(shiftPressed) {

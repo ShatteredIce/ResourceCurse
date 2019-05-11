@@ -58,6 +58,8 @@ public class Game extends Listener {
 	Player neutral = new Player(0, 0.8f, 0.8f, 0.8f);
 	Player controlledPlayer = new Player(1, 0.5f, 0, 0);
 	int myPlayerId = 1;
+	
+	boolean debug = false;
 		
 	public void run() throws IOException{
 		
@@ -445,7 +447,9 @@ public class Game extends Listener {
 		for (int i = 0; i < allUnits.size(); i++) {
 			Unit u = allUnits.get(i);
 			if(u.getDestroyedTerritoryIndex() != -1 && u.getDestroyedTerritoryIndex() == u.getLocation()) {
-				System.out.println(u.getOwnerId() + "'s unit destroyed at: " + u.getLocation());
+				if(debug) {
+					System.out.println(u.getOwnerId() + "'s unit destroyed at: " + u.getLocation());
+				}
 				players.get(u.getOwnerId()).getUnits().remove(u);
 				allUnits.remove(u);
 				i--;
@@ -544,13 +548,23 @@ public class Game extends Listener {
 				if(selectedUnit != null) {
 					selectedUnit = null;
 				}
-				System.out.println("Left Mouse Button: " + xpos.get(1) + " " + ypos.get(1));
+				if(debug) {
+					System.out.println("Left Mouse Button: " + xpos.get(1) + " " + ypos.get(1));
+				}
 				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 				if(t_id != -1) {
 					//deploy diplomatic control points
 					if(deployType == 0 && controlledPlayer.getResources()[0] > 0) {
-						diploDeploymentsArray[myPlayerId][t_id]++;
-						controlledPlayer.subResource(0, 1);
+						if(gamemap.territories.get(t_id).getOccupyingUnit() != null && gamemap.territories.get(t_id).getOccupyingUnit().getOwnerId() != myPlayerId) {
+							System.out.println("Territory occupied!");
+						}
+						else if(gamemap.territories.get(t_id).getOwner() != -1) {
+							System.out.println("Territory controlled!");
+						}
+						else {
+							diploDeploymentsArray[myPlayerId][t_id]++;
+							controlledPlayer.subResource(0, 1);
+						}
 					}
 					//deploy mil units on controlled territories only
 					else if(deployType == 1) {
@@ -563,7 +577,9 @@ public class Game extends Listener {
 				}
 			}
 			else if( button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-				System.out.println("Right Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
+				if(debug) {
+					System.out.println("Right Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
+				}
 				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 				if(t_id != -1) {
 					if(selectedUnit == null) {
@@ -606,7 +622,7 @@ public class Game extends Listener {
 				if(selectedUnit != null) {
 					selectedUnit = null;
 				}
-				int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 				if(t_id != -1) {
 					//change territory ownership
 					if(shiftPressed) {
@@ -648,10 +664,6 @@ public class Game extends Listener {
 				deployType = 1;
 				System.out.println("Deploying Military Units");
 			}
-	        if ( key == GLFW_KEY_2&& action == GLFW_RELEASE ) {
-	            deployType = 2;
-	            System.out.println("Deploying Economic Points");
-	        }
 			if ( key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS )
 				shiftPressed = true;
 			if ( key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE )

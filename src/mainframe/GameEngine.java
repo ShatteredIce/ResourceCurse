@@ -322,7 +322,7 @@ public class GameEngine {
 			mouseInFrame = true;
 			xAxisDistance = xpos.get(2)/WINDOW_WIDTH;
 			yAxisDistance = ypos.get(2)/WINDOW_HEIGHT;
-			System.out.println(xAxisDistance + " " + yAxisDistance);
+			//System.out.println(xAxisDistance + " " + yAxisDistance);
 		}
 		
 		int MIN_WIDTH = 100;
@@ -369,7 +369,7 @@ public class GameEngine {
 				cameraHeight /= zoomLevel;
 				viewX = oldX - cameraWidth * xAxisDistance;
 				viewY = oldY - cameraHeight * yAxisDistance;
-				System.out.println(viewX + " " + viewY);
+				//System.out.println(viewX + " " + viewY);
 			}
 		}
 	}
