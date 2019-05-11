@@ -1,10 +1,14 @@
 package packets;
 
-public class gamestate {
+public class GameState {
 
     int gamestate;
+    
+    public GameState() {
+    	
+    }
 
-    public gamestate(int i){
+    public GameState(int i){
         gamestate = i;
     }
 

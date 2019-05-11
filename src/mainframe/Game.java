@@ -79,6 +79,7 @@ public class Game extends Listener {
 		server.getKryo().register(TerritoryInfo.class);
 		server.getKryo().register(MouseClick.class);
 		server.getKryo().register(PointDeployments.class);
+		server.getKryo().register(GameState.class);
 		server.bind(tcpPort, udpPort);
 		
 		//Start server
@@ -184,6 +185,7 @@ public class Game extends Listener {
 	
 	public void startGame() {
 		gameState = 1;
+		engine.toggleCamera(true);
 		
 		//one player = debugging only
 		if(players.size()-1 == 1) {
@@ -316,21 +318,19 @@ public class Game extends Listener {
 		}
 		else if(gameState == 0) {
 			gametextures.loadTexture(14);
-			engine.render(0, 0, engine.gameScreenWidth, engine.gameScreenHeight);
+			engine.render(0, 0, engine.WINDOW_WIDTH, engine.WINDOW_HEIGHT);
 
 		}
 		//display win message
 		else if(gameState == 2) {
 			gametextures.loadTexture(15);
-			engine.render(0, 0, engine.gameScreenWidth, engine.gameScreenHeight);
+			engine.render(0, 0, engine.WINDOW_WIDTH, engine.WINDOW_HEIGHT);
 		}
 		//display defeat message
 		else if(gameState == 3) {
 			gametextures.loadTexture(16);
-			engine.render(0, 0, engine.gameScreenWidth, engine.gameScreenHeight);
+			engine.render(0, 0, engine.WINDOW_WIDTH, engine.WINDOW_HEIGHT);
 		}
-		//gametextures.loadTexture(1+4);
-		//engine.render(300, 300, 340, 340);
 	}
 	
 	public void buyUnit(int playerId, int t_id) {
@@ -512,9 +512,10 @@ public class Game extends Listener {
 			players.get(t.getOwner()).addResource(t.getResourceType(), t.getResourceAmt());
 			players.get(t.influenced_by).addResource(t.getResourceType(),t.getResourceAmt());
 		}
+		//base income
 		for (Player p : players) {
 			p.addResource(0, 1);
-			p.addResource(0, 2);
+			p.addResource(1, 1);
 		}
 		for (int i = 1; i < players.size(); i++) {
 			Player p = players.get(i);
@@ -529,13 +530,15 @@ public class Game extends Listener {
 	public void checkWin(){
 		if(players.get(1).getResources()[2] > 50){
 			gameState = 2;
-			server.sendToAllTCP(new gamestate(3));
+			engine.toggleCamera(false);
+			server.sendToAllTCP(new GameState(3));
 		}
 		for(int i = 2; i < players.size(); i++){
 			if(players.get(i).getResources()[2] > 50){
 				gameState = 3;
-				server.sendToAllTCP(new gamestate(3));
-				server.sendToTCP(i-1,new gamestate(2));
+				engine.toggleCamera(false);
+				server.sendToAllTCP(new GameState(3));
+				server.sendToTCP(i-1,new GameState(2));
 			}
 		}
 	}

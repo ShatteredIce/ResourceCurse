@@ -24,6 +24,7 @@ public class GameEngine {
 	static GameClient client;
 	
 	boolean isHost = true;
+	boolean cameraMovement = false;
 	
 	// The window handle
 	private long window;
@@ -223,22 +224,6 @@ public class GameEngine {
 	public long getWindowHandle() {
 		return window;
 	}
-	
-	//Screen projection based on relative camera coordinates
-	public void projectRelativeCameraCoordinates(){
-		glMatrixMode(GL_PROJECTION);
-        glLoadIdentity(); // Resets any previous projection matrices
-        glOrtho((-windowXOffset * getWidthScalar()) + viewX, viewX + cameraWidth + (windowXOffset * getWidthScalar()), viewY + cameraHeight + ((windowYOffset)* getHeightScalar()), viewY + ((-windowYOffset) * getHeightScalar()), 1, -1);
-        glMatrixMode(GL_MODELVIEW);
-	}
-		
-	//Screen projection based on true window coordinates
-	public void projectTrueWindowCoordinates(){
-		glMatrixMode(GL_PROJECTION);
-        glLoadIdentity(); // Resets any previous projection matrices
-        glOrtho(-windowXOffset, WINDOW_WIDTH + windowXOffset, WINDOW_HEIGHT + windowYOffset, -windowYOffset, 1, -1);
-        glMatrixMode(GL_MODELVIEW);
-	}
 		
 	//Scalars to help calculation
 	public double getWidthScalar(){
@@ -265,11 +250,22 @@ public class GameEngine {
 	}
 	
 	public double getGLCoordinateX(double x) {
-		return ((x - viewX) / (cameraWidth / 2)) - 1;
+		if(cameraMovement) {
+			return ((x - viewX) / (cameraWidth / 2)) - 1;
+		}
+		else {
+			return ((x) / (WINDOW_WIDTH / 2)) - 1;
+		}
+		
 	}
 	
 	public double getGLCoordinateY(double y) {
-		return -1*(((y - viewY) / (cameraHeight / 2)) - 1);
+		if(cameraMovement) {
+			return -1*(((y - viewY) / (cameraHeight / 2)) - 1);
+		}
+		else {
+			return -1*(((y) / (WINDOW_HEIGHT / 2)) - 1);
+		}
 	}
 	
 	public void render(double x1, double y1, double x2, double y2) {
@@ -372,5 +368,9 @@ public class GameEngine {
 				//System.out.println(viewX + " " + viewY);
 			}
 		}
+	}
+	
+	public void toggleCamera(boolean b) {
+		cameraMovement = b;
 	}
 }

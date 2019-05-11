@@ -84,6 +84,7 @@ public class GameClient extends Listener {
 		client.getKryo().register(TerritoryInfo.class);
 		client.getKryo().register(MouseClick.class);
 		client.getKryo().register(PointDeployments.class);
+		client.getKryo().register(GameState.class);
 		//start the client
 		client.start();
 		
@@ -163,6 +164,7 @@ public class GameClient extends Listener {
 			TurnStatus packet = (TurnStatus) obj;
 			if(gameState == 0 && packet.getStatus()) {
 				gameState = 1;
+				engine.toggleCamera(true);
 			}
 			nextTurn = true;
 		}
@@ -184,8 +186,9 @@ public class GameClient extends Listener {
 		else if(obj instanceof PointDeployments) {
 			PointDeployments packet = (PointDeployments) obj;
 			myResources = packet.getDeployments();
-		} else if( obj instanceof gamestate){
-			gameState = ((gamestate) obj).getGamestate();
+		} else if( obj instanceof GameState){
+			gameState = ((GameState) obj).getGamestate();
+			engine.toggleCamera(false);
 		}
 	}
 	
@@ -276,13 +279,20 @@ public class GameClient extends Listener {
 				
 			engine.moveCamera();
 		}
+		else if(gameState == 0) {
+			gametextures.loadTexture(14);
+			engine.render(0, 0, engine.WINDOW_WIDTH, engine.WINDOW_HEIGHT);
+
+		}
 		//display win message
 		else if(gameState == 2) {
-			
+			gametextures.loadTexture(15);
+			engine.render(0, 0, engine.WINDOW_WIDTH, engine.WINDOW_HEIGHT);
 		}
 		//display defeat message
 		else if(gameState == 3) {
-			
+			gametextures.loadTexture(16);
+			engine.render(0, 0, engine.WINDOW_WIDTH, engine.WINDOW_HEIGHT);
 		}
 	}
 	
@@ -318,7 +328,7 @@ public class GameClient extends Listener {
 				if(selectedUnit != null) {
 					selectedUnit = null;
 				}
-				System.out.println("Left Mouse Button: " + xpos.get(1) + " " + ypos.get(1));
+				//System.out.println("Left Mouse Button: " + xpos.get(1) + " " + ypos.get(1));
 				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 				if(t_id != -1) {
 //					//deploy diplomatic control points
@@ -341,7 +351,7 @@ public class GameClient extends Listener {
 				}
 			}
 			else if( button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-				System.out.println("Right Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
+				//System.out.println("Right Mouse Button: " + xpos.get(0) + " " + ypos.get(0));
 				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 				if(t_id != -1) {
 					if(selectedUnit == null) {
@@ -421,10 +431,6 @@ public class GameClient extends Listener {
 				deployType = 1;
 				System.out.println("Deploying Military Units");
 			}
-	        if ( key == GLFW_KEY_2&& action == GLFW_RELEASE ) {
-	            deployType = 2;
-	            System.out.println("Deploying Economic Points");
-	        }
 			if ( key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS )
 				shiftPressed = true;
 			if ( key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE )
