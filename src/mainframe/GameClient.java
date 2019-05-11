@@ -326,7 +326,7 @@ public class GameClient extends Listener {
 						if(gamemap.territories.get(t_id).getOccupyingUnit() != null && gamemap.territories.get(t_id).getOccupyingUnit().getOwnerId() != myPlayerId) {
 							System.out.println("Territory occupied!");
 						}
-						else if(gamemap.territories.get(t_id).getOwner() != -1) {
+						else if(gamemap.territories.get(t_id).getOwner() != 0) {
 							System.out.println("Territory controlled!");
 						}
 						else {
