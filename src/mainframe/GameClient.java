@@ -16,14 +16,7 @@ import com.esotericsoftware.kryonet.Listener;
 
 import com.esotericsoftware.kryonet.*;
 
-import packets.MapInfo;
-import packets.MouseClick;
-import packets.PlayerInfo;
-import packets.PointDeployments;
-import packets.TerritoryInfo;
-import packets.TurnStatus;
-import packets.UnitInfo;
-import packets.UnitPositions;
+import packets.*;
 import rendering.GameTextures;
 import rendering.Shader;
 import rendering.Texture;
@@ -191,6 +184,8 @@ public class GameClient extends Listener {
 		else if(obj instanceof PointDeployments) {
 			PointDeployments packet = (PointDeployments) obj;
 			myResources = packet.getDeployments();
+		} else if( obj instanceof gamestate){
+			gameState = ((gamestate) obj).getGamestate();
 		}
 	}
 	
