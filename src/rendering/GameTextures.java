@@ -20,6 +20,9 @@ public class GameTextures {
 	final static Texture seven = new Texture("7.png");
 	final static Texture eight = new Texture("8.png");
 	final static Texture nine = new Texture("9.png");
+	final static Texture loading = new Texture("loading.png");
+	final static Texture win = new Texture("win.png");
+	final static Texture lose = new Texture("lose.png");
 	
 	
 	//bind texture corresponding to id
@@ -68,6 +71,15 @@ public class GameTextures {
 			break;
 		case 13:
 			nine.bind(0);
+			break;
+		case 14:
+			loading.bind(0);
+			break;
+		case 15:
+			win.bind(0);
+			break;
+		case 16:
+			lose.bind(0);
 			break;
 		default:
 			try {
