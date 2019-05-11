@@ -30,6 +30,10 @@ public class Player {
 		resources[type] -= amount;
 	}
 	
+	public void setResources(int type, int amount) {
+		resources[type] = amount;
+	}
+	
 	public int checkResource(int type) {
 		return resources[type];
 	}

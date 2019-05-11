@@ -21,6 +21,9 @@ import rendering.Shader;
 public class GameEngine {
 	
 	static Game game;
+	static GameClient client;
+	
+	boolean isHost = true;
 	
 	// The window handle
 	private long window;
@@ -58,9 +61,18 @@ public class GameEngine {
     boolean panRight = false;
     boolean panUp = false;
     boolean panDown = false;
+    
+    String name;
 
-	public GameEngine(Game newgame) {
+	public GameEngine(Game newgame, String newname) {
 		game = newgame;
+		name = newname;
+	}
+	
+	public GameEngine(GameClient newclient, String newname) {
+		client = newclient;
+		isHost = false;
+		name = newname;
 	}
 	
 	public void create() {
@@ -77,7 +89,7 @@ public class GameEngine {
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 		// Create the window
-		window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "ResourceCurse [Development]", NULL, NULL);
+		window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, name, NULL, NULL);
 		if ( window == NULL ) {
 			throw new RuntimeException("Failed to create the GLFW window");
 		}
@@ -107,7 +119,12 @@ public class GameEngine {
 			else if ( key == GLFW_KEY_DOWN && action == GLFW_RELEASE )
 				panDown = false;
 			else{
-				game.onKeyPressed(window, key, scancode, action, mods);
+				if(isHost) {
+					game.onKeyPressed(window, key, scancode, action, mods);
+				}
+				else {
+					client.onKeyPressed(window, key, scancode, action, mods);
+				}
 			}
 		});
 		
@@ -125,7 +142,12 @@ public class GameEngine {
 			//true window coordinates
 			xpos.put(2, xpos.get(0) - windowXOffset);
 			ypos.put(2, ypos.get(0) - windowYOffset);
-			game.onMouseClick(button, action, xpos, ypos);
+			if(isHost) {
+				game.onMouseClick(button, action, xpos, ypos);
+			}
+			else {
+				client.onMouseClick(button, action, xpos, ypos);
+			}
 		});
 		//mouse scroll
 		glfwSetScrollCallback(window, (window, xoffset, yoffset) -> {

@@ -144,5 +144,6 @@
 	<classpathentry kind="lib" path="lib/lwjgl-release-3.2.1-custom/lwjgl-zstd-sources.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-release-3.2.1-custom/lwjgl-zstd.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-release-3.2.1-custom/lwjgl.jar"/>
+	<classpathentry kind="lib" path="lib/kryonet-2.21/jars/production/onejar/kryonet-2.21-all.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

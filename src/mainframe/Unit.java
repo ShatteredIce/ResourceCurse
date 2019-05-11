@@ -3,15 +3,13 @@ package mainframe;
 public class Unit {
     private int location; //Index of territory
     private int target_location = -1; // Index of territory
-    private int health;
     private int ownerId = -1;
     boolean supportMove = false;
     int moveStatus = 0; //0 = false, 1 = true, 2 = pending
-    boolean victorious = false;
+    int destroyedTerritoryIndex= -1;
 
     public Unit(int newlocation, int newid){
         location = newlocation;
-        health = 1;
         ownerId = newid;
     }
 
@@ -47,25 +45,15 @@ public class Unit {
     	return moveStatus;
     }
     
-    public void setVictorious(boolean b) {
-    	victorious = b;
+    public void setDestroyedTerritoryIndex(int i) {
+    	destroyedTerritoryIndex = i;
     }
     
-    public boolean getVictorious() {
-    	return victorious;
-    }
-
-    public int getHealth() {
-        return health;
-    }
-
-    public void setHealth(int health) {
-        this.health = health;
+    public int getDestroyedTerritoryIndex() {
+    	return destroyedTerritoryIndex;
     }
     
     public int getOwnerId() {
     	return ownerId;
     }
-
-    public void incrementHealth(int incr){health += incr;}
 }

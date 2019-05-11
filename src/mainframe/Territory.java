@@ -1,6 +1,4 @@
 package mainframe;
-import java.awt.Color;
-import java.util.ArrayList;
 
 import  java.lang.Math;
 
@@ -69,27 +67,40 @@ public class Territory {
 	public void addDiplomaticPoints(int amount, int index) {
 	    if(owner_id == 0) {
             diplomatic_points[index] += amount;
-            if (diplomatic_points[index] >= 20) {
-                owner_id = index;
-                influenced_by = 0;
-            } else if ((influenced_by != index && influenced_by != 0) && diplomatic_points[influenced_by] - diplomatic_points[index] < 5) {
-                influenced_by = 0;
-            } else if (influenced_by == 0) {
-                boolean greaterThan = true;
-                for (int i = 0; i < diplomatic_points.length; i++) {
-                    if (diplomatic_points[index] - diplomatic_points[i] < 5 && i != index) {
-                        greaterThan = false;
-                    }
-                }
-                if (greaterThan) {
-                    influenced_by = index;
-                }
-            }
         }
+	}
+	
+	public void updateInfluence() {
+		for (int i = 0; i < diplomatic_points.length; i++) {
+			if(diplomatic_points[i] >= 20) {
+				owner_id = i;
+				influenced_by = 0;
+				break;
+			}
+			else {
+				boolean greaterThan = true;
+				for (int j = 0; j < diplomatic_points.length; j++) {
+					if(i != j && diplomatic_points[i] - diplomatic_points[j] < 5) {
+						greaterThan = false;
+					}
+				}
+				if(greaterThan) {
+					influenced_by = i;
+					break;
+				}
+			}
+			if(i == diplomatic_points.length - 1) {
+				influenced_by = 0;
+			}
+		}
 	}
 	
 	public void setDiplomaticPoints(int amount, int index) {
 		diplomatic_points[index] = amount;
+	}
+	
+	public void setDiplomaticPoints(int[] arr) {
+		diplomatic_points = arr;
 	}
 	
 	public int[] getDiplomaticPoints() {
@@ -108,6 +119,8 @@ public class Territory {
 	public Unit getOccupyingUnit() {
 		return occupying;
 	}
+
+	public int getInfluenced_by(){return influenced_by;}
 	
 
 }

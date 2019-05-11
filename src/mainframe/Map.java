@@ -63,5 +63,9 @@ public abstract class Map {
 	public ArrayList<Territory> getTerritories(){
 		return territories;
 	}
+	
+	public void setTerritories(ArrayList<Territory> newterritories) {
+		territories = newterritories;
+	}
 
 }
