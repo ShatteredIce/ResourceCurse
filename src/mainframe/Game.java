@@ -514,14 +514,16 @@ public class Game extends Listener {
 		}
 		//base income
 		for (Player p : players) {
-			p.addResource(0, 1);
+			p.addResource(0, 2);
 			p.addResource(1, 1);
 		}
 		for (int i = 1; i < players.size(); i++) {
 			Player p = players.get(i);
 			p.subResource(1, p.numUnits());
-			System.out.println("Player " + p.getId() + ": " + p.checkResource(0) + " Diplomatic  " + p.checkResource(1) + " Military  " + p.checkResource(2) + " Economic");
+//			System.out.println("Player " + p.getId() + ": " + p.checkResource(0) + " Diplomatic  " + p.checkResource(1) + " Military  " + p.checkResource(2) + " Economic");
 		}
+		System.out.println("My Resources - Diplomatic (" + controlledPlayer.getResources()[0] + ")  Military (" + controlledPlayer.getResources()[1] + ")  Economic (" + controlledPlayer.getResources()[2] + ")");
+
 		System.out.println("----------------------------------------------");
 		turnNum++;
 		updateClients();
