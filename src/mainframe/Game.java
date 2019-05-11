@@ -12,14 +12,7 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.kryonet.Connection;
 
-import packets.MapInfo;
-import packets.MouseClick;
-import packets.PlayerInfo;
-import packets.PointDeployments;
-import packets.TerritoryInfo;
-import packets.TurnStatus;
-import packets.UnitInfo;
-import packets.UnitPositions;
+import packets.*;
 import rendering.GameTextures;
 import rendering.Shader;
 import rendering.Texture;
@@ -288,17 +281,25 @@ public class Game extends Listener {
 			//check for next turn
 			if(checkNextTurn()) {
 				processTurn();
+				checkWin();
 			}
 				
 			engine.moveCamera();
 		}
+		else if(gameState == 0) {
+			gametextures.loadTexture(1);
+			engine.render(0, 0, engine.gameScreenWidth, engine.gameScreenHeight);
+
+		}
 		//display win message
 		else if(gameState == 2) {
-			
+			gametextures.loadTexture(1);
+			engine.render(0, 0, engine.gameScreenWidth, engine.gameScreenHeight);
 		}
 		//display defeat message
 		else if(gameState == 3) {
-			
+			gametextures.loadTexture(1);
+			engine.render(0, 0, engine.gameScreenWidth, engine.gameScreenHeight);
 		}
 		//gametextures.loadTexture(1+4);
 		//engine.render(300, 300, 340, 340);
@@ -486,6 +487,20 @@ public class Game extends Listener {
 		System.out.println("----------------------------------------------");
 		turnNum++;
 		updateClients();
+	}
+
+	public void checkWin(){
+		if(players.get(1).getResources()[2] > 50){
+			gameState = 2;
+			server.sendToAllTCP(new gamestate(3));
+		}
+		for(int i = 2; i < players.size(); i++){
+			if(players.get(i).getResources()[2] > 50){
+				gameState = 3;
+				server.sendToAllTCP(new gamestate(3));
+				server.sendToTCP(i-1,new gamestate(2));
+			}
+		}
 	}
 	
 	
