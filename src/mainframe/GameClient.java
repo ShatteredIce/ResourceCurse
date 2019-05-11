@@ -6,6 +6,7 @@ import static org.lwjgl.opengl.GL11.*;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 
@@ -18,6 +19,7 @@ import com.esotericsoftware.kryonet.*;
 import packets.MapInfo;
 import packets.MouseClick;
 import packets.PlayerInfo;
+import packets.PointDeployments;
 import packets.TerritoryInfo;
 import packets.TurnStatus;
 import packets.UnitInfo;
@@ -66,6 +68,10 @@ public class GameClient extends Listener {
 	ArrayList<PlayerInfo> players = new ArrayList<PlayerInfo>();
 	ArrayList<UnitInfo> units = new ArrayList<UnitInfo>();
 	
+	int[] myResources = new int[3];
+	
+	int[] diploDeployments; 
+	
 	
 	public void run() throws IOException{
 		
@@ -84,6 +90,7 @@ public class GameClient extends Listener {
 		client.getKryo().register(MapInfo.class);
 		client.getKryo().register(TerritoryInfo.class);
 		client.getKryo().register(MouseClick.class);
+		client.getKryo().register(PointDeployments.class);
 		//start the client
 		client.start();
 		
@@ -130,6 +137,7 @@ public class GameClient extends Listener {
 		
 		shader = new Shader("shader");
 		gamemap = new TestMap();
+		diploDeployments = new int[gamemap.getTerritories().size()];
 		
 		gametextures = new GameTextures();
 						
@@ -177,7 +185,12 @@ public class GameClient extends Listener {
 			ArrayList<TerritoryInfo> territoryData = ((MapInfo) obj).getTerritories();
 			for (int i = 0; i < territoryData.size(); i++) {
 				gamemap.getTerritories().get(territoryData.get(i).getId()).setOwner(territoryData.get(i).getOwnerId());
+				gamemap.getTerritories().get(territoryData.get(i).getId()).setDiplomaticPoints(territoryData.get(i).getDiplomaticPoints());
 			}
+		}
+		else if(obj instanceof PointDeployments) {
+			PointDeployments packet = (PointDeployments) obj;
+			myResources = packet.getDeployments();
 		}
 	}
 	
@@ -187,6 +200,7 @@ public class GameClient extends Listener {
 	}
 	
 	public void sendTurnOrders() {
+		client.sendTCP(new PointDeployments(myPlayerId, diploDeployments, myResources[0]));
 		for (UnitInfo u : units) {
 			if(u.getOwnerId() == myPlayerId && u.getTarget() != -1) {
 				client.sendTCP(new UnitInfo(u.getOwnerId(), u.getLocation(), u.getTarget(), u.isSupporting()));
@@ -211,7 +225,7 @@ public class GameClient extends Listener {
 			//draw territories
 			for (int i = 0; i < gamemap.getTerritories().size(); i++) {
 				gamemap.getTerritoryTextures().get(i).bind(0);
-				float[] color = players.get(gamemap.getTerritories().get(i).getOwner()).getColor();
+				float[] color = players.get(gamemap.getTerritories().get(i).getOwner() + gamemap.getTerritories().get(i).getInfluenced_by()).getColor();
 				float influenced = gamemap.getTerritories().get(i).getInfluenced_by() != 0 ? (float)1.5 : 1;
 				shader.setUniform("red", color[0]*influenced);
 				shader.setUniform("green", color[1]*influenced);
@@ -258,12 +272,9 @@ public class GameClient extends Listener {
 				engine.render(center[0] - 40, center[1] - 40, center[0] + 40, center[1] + 40);
 			}
 			
-			//give players resources
+			//if ready for next turn
 			if(nextTurn) {
-				System.out.println("------------------[Turn " + turnNum + "]--------------------");
-				System.out.println("----------------------------------------------");
-				turnNum++;
-				nextTurn = false;
+				processTurn();
 			}
 				
 			engine.moveCamera();
@@ -276,6 +287,22 @@ public class GameClient extends Listener {
 		else if(gameState == 3) {
 			
 		}
+	}
+	
+	//game logic for when the game turn advances
+	public void processTurn() {
+		for (int i = 0; i < gamemap.getTerritories().size(); i++) {
+			gamemap.getTerritories().get(i).updateInfluence();
+		}
+		
+		System.out.println("------------------[Turn " + turnNum + "]--------------------");
+		System.out.println("My Resources - Diplomatic (" + myResources[0] + ")  Military (" + myResources[1] + ")  Economic (" + myResources[2] + ")");
+		System.out.println("----------------------------------------------");
+		
+		Arrays.fill(diploDeployments, 0);
+		
+		turnNum++;
+		nextTurn = false;
 	}
 	
 	public boolean checkAdjacent(int location, int target){
@@ -298,10 +325,10 @@ public class GameClient extends Listener {
 				int t_id = gamemap.getTerritoryClicked((int) xpos.get(1), (int) ypos.get(1));
 				if(t_id != -1) {
 //					//deploy diplomatic control points
-//					if(deployType == 0 && controlledPlayer.getResources()[0] > 0) {
-//						gamemap.getTerritories().get(t_id).addDiplomaticPoints(1, controlledPlayer.getId());
-//						controlledPlayer.subResource(0, 1);
-//					}
+					if(deployType == 0 && myResources[0] > 0) {
+						diploDeployments[t_id]++;
+						myResources[0]--;
+					}
 					//deploy mil units on controlled territories only
 					if(deployType == 1) {
 						client.sendTCP(new MouseClick(myPlayerId, 1, t_id));
@@ -352,6 +379,29 @@ public class GameClient extends Listener {
 					selectedUnit = null;
 				}
 			}
+			else if( button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
+				if(selectedUnit != null) {
+					selectedUnit = null;
+				}
+				int t_id = gamemap.getTerritoryClicked((int) xpos.get(0), (int) ypos.get(0));
+				if(t_id != -1) {
+					//change territory ownership
+					if(shiftPressed) {
+						System.out.println("Territory Clicked: " + t_id);
+						gamemap.getTerritories().get(t_id).setOwner((gamemap.getTerritories().get(t_id).getOwner() + 1) % players.size());
+					}
+					//get territory info
+					else {
+						System.out.println("Territory Clicked: " + t_id);
+						System.out.println("Owner: " + gamemap.getTerritories().get(t_id).owner_id);
+						System.out.println("Influenced By: " + gamemap.getTerritories().get(t_id).influenced_by);
+						int[] diplo = gamemap.getTerritories().get(t_id).getDiplomaticPoints();
+						for (int p = 1; p < players.size(); p++) {
+							System.out.println("Player " + (p) + " : "+ diplo[p] + " DP");
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -378,6 +428,8 @@ public class GameClient extends Listener {
 				shiftPressed = true;
 			if ( key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE )
 				shiftPressed = false;
+			if ( key == GLFW_KEY_SPACE && action == GLFW_RELEASE )
+				System.out.println("My Resources - Diplomatic (" + myResources[0] + ")  Military (" + myResources[1] + ")  Economic (" + myResources[2] + ")");
 		
 	}
 	

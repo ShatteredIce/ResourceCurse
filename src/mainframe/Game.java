@@ -6,7 +6,7 @@ import static org.lwjgl.opengl.GL11.*;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
-
+import java.util.Arrays;
 
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
@@ -15,6 +15,7 @@ import com.esotericsoftware.kryonet.Connection;
 import packets.MapInfo;
 import packets.MouseClick;
 import packets.PlayerInfo;
+import packets.PointDeployments;
 import packets.TerritoryInfo;
 import packets.TurnStatus;
 import packets.UnitInfo;
@@ -52,9 +53,11 @@ public class Game extends Listener {
 	
 	
 	boolean[] nextTurnArray = {true, true, true, true, true};
-	
-	int deployType = 0;
+	int[][] combatArray;
+	int[][] diploDeploymentsArray;
 
+
+	int deployType = 0;
 	boolean shiftPressed = false;
 	
 	ArrayList<Player> players = new ArrayList<Player>();
@@ -62,9 +65,7 @@ public class Game extends Listener {
 	Player neutral = new Player(0, 0.8f, 0.8f, 0.8f);
 	Player controlledPlayer = new Player(1, 0.5f, 0, 0);
 	int myPlayerId = 1;
-	
-	int[][] combatArray;
-	
+		
 	public void run() throws IOException{
 		
 		//Create servers
@@ -82,6 +83,7 @@ public class Game extends Listener {
 		server.getKryo().register(MapInfo.class);
 		server.getKryo().register(TerritoryInfo.class);
 		server.getKryo().register(MouseClick.class);
+		server.getKryo().register(PointDeployments.class);
 		server.bind(tcpPort, udpPort);
 		
 		//Start server
@@ -103,7 +105,7 @@ public class Game extends Listener {
 		
 		shader = new Shader("shader");
 		gamemap = new TestMap();
-		
+				
 		gametextures = new GameTextures();
 
 		//players id start at 1
@@ -143,6 +145,9 @@ public class Game extends Listener {
 		
 		server.sendToAllTCP(new UnitPositions(allUnits));
 		server.sendToAllTCP(new MapInfo(gamemap.getTerritories()));
+		for (int i = 2; i < players.size(); i++) {
+			server.sendToTCP(i - 1, new PointDeployments(i, players.get(i).getResources()));
+		}
 		server.sendToAllTCP(new TurnStatus(true));
 		for (int i = 1; i < players.size(); i++) {
 			nextTurnArray[i] = false;
@@ -174,6 +179,11 @@ public class Game extends Listener {
 					u.setSupportMove(packet.isSupporting());
 				}
 			}
+		}
+		else if(obj instanceof PointDeployments) {
+			PointDeployments packet = (PointDeployments) obj;
+			diploDeploymentsArray[packet.getPlayerId()] = packet.getDeployments();
+			players.get(packet.getPlayerId()).setResources(0, packet.getPointsSaved());
 		}
 	}
 	
@@ -209,6 +219,7 @@ public class Game extends Listener {
 		}
 		
 		combatArray = new int[gamemap.getTerritories().size()][players.size()];
+		diploDeploymentsArray = new int[players.size()][gamemap.getTerritories().size()];
 		for (int i = 0; i < players.size(); i++) {
 			server.sendToAllTCP(new PlayerInfo(0, colors[i], i));
 		}
@@ -279,26 +290,9 @@ public class Game extends Listener {
 				engine.render(center[0] - 40, center[1] - 40, center[0] + 40, center[1] + 40);
 			}
 			
-			//give players resources
+			//check for next turn
 			if(checkNextTurn()) {
-				moveUnits();
-				System.out.println("------------------[Turn " + turnNum + "]--------------------");
-				for (int i = 1; i < players.size(); i++) {
-					Player p = players.get(i);
-					p.subResource(1, p.getResources()[1]); //clear all excess mil power
-				}
-				for (Territory t : gamemap.getTerritories()) {
-					players.get(t.getOwner()).addResource(t.getResourceType(), t.getResourceAmt());
-					players.get(t.influenced_by).addResource(t.getResourceType(),t.getResourceAmt());
-				}
-				for (int i = 1; i < players.size(); i++) {
-					Player p = players.get(i);
-					p.subResource(1, p.numUnits());
-					System.out.println("Player " + p.getId() + ": " + p.checkResource(0) + " Diplomatic  " + p.checkResource(1) + " Military  " + p.checkResource(2) + " Economic");
-				}
-				System.out.println("----------------------------------------------");
-				turnNum++;
-				updateClients();
+				processTurn();
 			}
 				
 			engine.moveCamera();
@@ -311,6 +305,8 @@ public class Game extends Listener {
 		else if(gameState == 3) {
 			
 		}
+		//gametextures.loadTexture(1+4);
+		//engine.render(300, 300, 340, 340);
 	}
 
 	public void deployDiploPoints(int playerId, int t_id){
@@ -464,6 +460,53 @@ public class Game extends Listener {
         return false;
     }
 	
+	public boolean checkNextTurn() {
+		for (int i = 1; i < players.size() + 1; i++) {
+			if(nextTurnArray[i] == false) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public void processTurn() {
+		//deploy diplomatic control points
+		for (int i = 0; i < gamemap.getTerritories().size(); i++) {
+			for (int j = 1; j < diploDeploymentsArray.length; j++) {
+				gamemap.getTerritories().get(i).addDiplomaticPoints(diploDeploymentsArray[j][i], j);
+			}
+		}
+		
+		for (int i = 0; i < gamemap.getTerritories().size(); i++) {
+			gamemap.getTerritories().get(i).updateInfluence();
+		}
+		
+		//clear for next turn
+		for (int j = 0; j < diploDeploymentsArray.length; j++) {
+			Arrays.fill(diploDeploymentsArray[j], 0);
+		}
+		
+		moveUnits();
+		//process resources
+		System.out.println("------------------[Turn " + turnNum + "]--------------------");
+		for (int i = 1; i < players.size(); i++) {
+			Player p = players.get(i);
+			p.subResource(1, p.getResources()[1]); //clear all excess mil power
+		}
+		for (Territory t : gamemap.getTerritories()) {
+			players.get(t.getOwner()).addResource(t.getResourceType(), t.getResourceAmt());
+			players.get(t.influenced_by).addResource(t.getResourceType(),t.getResourceAmt());
+		}
+		for (int i = 1; i < players.size(); i++) {
+			Player p = players.get(i);
+			p.subResource(1, p.numUnits());
+			System.out.println("Player " + p.getId() + ": " + p.checkResource(0) + " Diplomatic  " + p.checkResource(1) + " Military  " + p.checkResource(2) + " Economic");
+		}
+		System.out.println("----------------------------------------------");
+		turnNum++;
+		updateClients();
+	}
+	
 	
 	//mouse clicks
 	public void onMouseClick(int button, int action, DoubleBuffer xpos, DoubleBuffer ypos) {
@@ -477,7 +520,7 @@ public class Game extends Listener {
 				if(t_id != -1) {
 					//deploy diplomatic control points
 					if(deployType == 0 && controlledPlayer.getResources()[0] > 0) {
-						gamemap.getTerritories().get(t_id).addDiplomaticPoints(1, controlledPlayer.getId());
+						diploDeploymentsArray[myPlayerId][t_id]++;
 						controlledPlayer.subResource(0, 1);
 					}
 					//deploy mil units on controlled territories only
@@ -584,17 +627,10 @@ public class Game extends Listener {
 				shiftPressed = true;
 			if ( key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE )
 				shiftPressed = false;
+			if ( key == GLFW_KEY_SPACE && action == GLFW_RELEASE )
+				System.out.println("My Resources - Diplomatic (" + controlledPlayer.checkResource(0) + ")  Military (" + controlledPlayer.checkResource(1) + ")  Economic (" + controlledPlayer.checkResource(2) + ")");
 		}
 		
-	}
-	
-	public boolean checkNextTurn() {
-		for (int i = 1; i < players.size() + 1; i++) {
-			if(nextTurnArray[i] == false) {
-				return false;
-			}
-		}
-		return true;
 	}
 	
 	public static void main(String[] args) throws IOException {
