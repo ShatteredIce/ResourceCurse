@@ -306,6 +306,8 @@ public class Game extends Listener {
 		else if(gameState == 3) {
 			
 		}
+		gametextures.loadTexture(1+4);
+		engine.render(300, 300, 340, 340);
 	}
 	
 	public void buyUnit(int playerId, int t_id) {
