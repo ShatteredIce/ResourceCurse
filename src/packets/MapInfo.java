@@ -15,7 +15,7 @@ public class MapInfo {
 	public MapInfo(ArrayList<Territory> newterritories){
 		for (int i = 0; i < newterritories.size(); i++) {
 			Territory current = newterritories.get(i);
-			territories.add(new TerritoryInfo(current.getId(), current.getOwner()));
+			territories.add(new TerritoryInfo(current.getId(), current.getOwner(), current.getDiplomaticPoints()));
 		}
 	}
 
