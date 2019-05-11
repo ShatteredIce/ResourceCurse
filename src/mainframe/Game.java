@@ -287,18 +287,18 @@ public class Game extends Listener {
 			engine.moveCamera();
 		}
 		else if(gameState == 0) {
-			gametextures.loadTexture(1);
+			gametextures.loadTexture(14);
 			engine.render(0, 0, engine.gameScreenWidth, engine.gameScreenHeight);
 
 		}
 		//display win message
 		else if(gameState == 2) {
-			gametextures.loadTexture(1);
+			gametextures.loadTexture(15);
 			engine.render(0, 0, engine.gameScreenWidth, engine.gameScreenHeight);
 		}
 		//display defeat message
 		else if(gameState == 3) {
-			gametextures.loadTexture(1);
+			gametextures.loadTexture(16);
 			engine.render(0, 0, engine.gameScreenWidth, engine.gameScreenHeight);
 		}
 		//gametextures.loadTexture(1+4);
