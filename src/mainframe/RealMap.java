@@ -20,14 +20,14 @@ public class RealMap extends Map {
 		territories.add(new Territory(6, 0, 135, 0, 0, 770, 360, 2, 1,new int[]{3,4,5,7,9,10}));
 		territories.add(new Territory(7, 0, 115, 0, 0, 810, 590, 1, 1,new int[]{2,3,6,8,10,11,12,14,15,16}));
 		territories.add(new Territory(8, 0, 95, 0, 0, 710, 740, 0, 2,new int[]{7,11}));
-		territories.add(new Territory(9, 0, 75, 0, 0, 860, 245, 2, 3,new int[]{6,10}));
-		territories.add(new Territory(10, 0, 55, 0, 0, 945, 400, 1, 3,new int[]{6,7,9,13,14}));
-		territories.add(new Territory(11, 0, 35, 0, 0, 820, 750, 2, 4,new int[]{7,8,12}));
+		territories.add(new Territory(9, 0, 75, 0, 0, 860, 245, 2, 1,new int[]{6,10}));
+		territories.add(new Territory(10, 0, 55, 0, 0, 945, 400, 1, 1,new int[]{6,7,9,13,14}));
+		territories.add(new Territory(11, 0, 35, 0, 0, 820, 750, 2, 2,new int[]{7,8,12}));
 		territories.add(new Territory(12, 0, 15, 0, 0, 920, 755, 1, 2,new int[]{7,11,16}));
 		territories.add(new Territory(13, 0, 0, 255, 0, 1080, 230, 0, 1,new int[]{10,14,18}));
 		territories.add(new Territory(14, 0, 0, 235, 0, 1160, 405, 2, 1,new int[]{7,10,13,15,18,19,20}));
 		territories.add(new Territory(15, 0, 0, 215, 0, 1130, 665, 2, 2,new int[]{7,14,16,17,20,21}));
-		territories.add(new Territory(16, 0, 0, 195, 0, 1010, 710, 1, 3,new int[]{7,12,15,17}));
+		territories.add(new Territory(16, 0, 0, 195, 0, 1010, 710, 1, 2,new int[]{7,12,15,17}));
 		territories.add(new Territory(17, 0, 0, 175, 0, 1105, 815, 0, 2,new int[]{15,16,21}));
 		territories.add(new Territory(18, 0, 0, 155, 0, 1210, 215, 0, 1,new int[]{13,14,19,23}));
 		territories.add(new Territory(19, 0, 0, 135, 0, 1270, 300, 1, 1,new int[]{14,18,20,23,26,28}));
