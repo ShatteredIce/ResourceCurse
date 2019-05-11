@@ -479,6 +479,10 @@ public class Game extends Listener {
 			players.get(t.getOwner()).addResource(t.getResourceType(), t.getResourceAmt());
 			players.get(t.influenced_by).addResource(t.getResourceType(),t.getResourceAmt());
 		}
+		for (Player p : players) {
+			p.addResource(0, 1);
+			p.addResource(0, 2);
+		}
 		for (int i = 1; i < players.size(); i++) {
 			Player p = players.get(i);
 			p.subResource(1, p.numUnits());
