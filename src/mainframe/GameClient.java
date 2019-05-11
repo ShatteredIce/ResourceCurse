@@ -333,7 +333,13 @@ public class GameClient extends Listener {
 				if(t_id != -1) {
 //					//deploy diplomatic control points
 					if(deployType == 0 && myResources[0] > 0) {
-						if(gamemap.territories.get(t_id).getOccupyingUnit() != null && gamemap.territories.get(t_id).getOccupyingUnit().getOwnerId() != myPlayerId) {
+						boolean hasUnit = false;
+						for (UnitInfo u : units) {
+							if(u.getLocation() == t_id && u.getOwnerId() != myPlayerId) {
+								hasUnit = true;
+							}
+						}
+						if(hasUnit) {
 							System.out.println("Territory occupied!");
 						}
 						else if(gamemap.territories.get(t_id).getOwner() != 0) {
