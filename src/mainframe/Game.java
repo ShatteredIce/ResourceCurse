@@ -424,6 +424,9 @@ public class Game extends Listener {
 						gamemap.getTerritories().get(u.getLocation()).setOccupyingUnit(null);
 						gamemap.getTerritories().get(u.getTarget()).setOccupyingUnit(u);
 						u.setLocation(u.getTarget());
+						u.setMoveStatus(0);
+						u.setTarget(-1);
+						u.setSupportMove(false);
 					}
 					else if(u.getMoveStatus() == 2) {
 						unitsPending = true;
