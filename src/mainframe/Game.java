@@ -216,7 +216,7 @@ public class Game extends Listener {
 			p2rand = p2rand*10+10;
 			gamemap.getTerritories().get((int)p2rand).setOwner(2);
 			double p3rand = Math.random();
-			p2rand = p3rand*10+20;
+			p3rand = p3rand*10+20;
 			gamemap.getTerritories().get((int)p3rand).setOwner(3);
 		}
 		//four players
