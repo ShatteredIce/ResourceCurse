@@ -159,6 +159,11 @@ public class Game extends Listener {
 			MouseClick packet = (MouseClick) obj;
 			if(packet.getAction() == 1) {
 				buyUnit(packet.getPlayerId(), packet.getTerritoryId());
+			}else if(packet.getAction() == 0){
+				deployDiploPoints(packet.getPlayerId(), packet.getTerritoryId());
+				server.sendToAllTCP(new MapInfo(gamemap.getTerritories()));
+			}else if(packet.getAction() == 2){
+				deployEconPoints(packet.getPlayerId(), packet.getTerritoryId());
 			}
 		}
 		else if(obj instanceof UnitInfo) {
@@ -305,6 +310,20 @@ public class Game extends Listener {
 		//display defeat message
 		else if(gameState == 3) {
 			
+		}
+	}
+
+	public void deployDiploPoints(int playerId, int t_id){
+		if(players.get(playerId).getResources()[0] > 0){
+			gamemap.getTerritories().get(t_id).addDiplomaticPoints(1, playerId);
+			players.get(playerId).subResource(0,1);
+		}
+	}
+
+	public void deployEconPoints(int playerId, int t_id){
+		if(players.get(playerId).getResources()[2] > 0){
+			gamemap.getTerritories().get(t_id).addEconomicPoints(1);
+			players.get(playerId).subResource(2,1);
 		}
 	}
 	
